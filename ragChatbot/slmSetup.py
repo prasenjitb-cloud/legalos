@@ -61,13 +61,24 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 
 index = pc.Index("jurisdesk")
 
+while True:
+    q = input("\nAsk a legal question (type 'exit' to quit): ").strip()
 
-q ="what happens if someone murders anyone"
+    if q.lower() in ["exit", "quit", "q"]:
+        print("Exiting.")
+        break
 
-retrieved_docs=retriever.invoke(q)
-context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    if not q:
+        print("Empty question. Try again.")
+        continue
 
-final_prompt = prompt.invoke({"context": context_text, "question": q})
+    retrieved_docs = retriever.invoke(q)
+    context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
-answer = llm.invoke(final_prompt)
-print(answer.content) 
+    final_prompt = prompt.invoke({
+        "context": context_text,
+        "question": q
+    })
+
+    answer = llm.invoke(final_prompt)
+    print("\nAnswer:\n", answer.content)
