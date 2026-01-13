@@ -1,0 +1,17 @@
+langchain
+langchain-community
+langchain-core
+langchain-openai
+langchain-pinecone
+langchain-ollama
+
+pinecone
+
+pypdf
+python-dotenv
+
+beautifulsoup4
+lxml
+
+huggingface-hub
+sentence-transformers
