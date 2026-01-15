@@ -1,19 +1,18 @@
-langchain
-langchain-community
-langchain-core
-langchain-openai
-langchain-pinecone
-langchain-ollama
-pymilvus
-langchain-milvus
-
-pinecone
-
-pypdf
 python-dotenv
 
+requests
 beautifulsoup4
-lxml
 
-huggingface-hub
+pypdf
+
+langchain-core
+langchain-community
+langchain-text-splitters
+
+langchain-huggingface
 sentence-transformers
+
+langchain-qdrant
+qdrant-client
+
+langchain-ollama
