@@ -43,27 +43,28 @@ touch .env
 ```
 
 ### Add the following variables to `.env`
+#### These are for analytics. Putting LANGSMITH_TRACING_V2=true starts the tracing.
 ```env
-PINECONE_API_KEY=your_pinecone_api_key_here
 LANGSMITH_TRACING_V2=true
 LANGSMITH_API_KEY=your_langsmith_api_key_here
 LANGSMITH_PROJECT=LegalOs
 ```
 
+
 ---
 
 ## Legal Data Setup
 
-### Option 1: Download State Acts PDFs locally
+### Step 1: Download Central Acts PDFs locally
 
-If you want to download State Acts PDFs to your system:
+Download Central Acts PDFs from India Code to your system:
 ```bash
 python ragChatbot/stateActsDownloader.py
 ```
 
-### Option 2: Store data directly in Vector DB (no local download)
+### Step 2: Create Vector Database and Embed PDFs
 
-Make sure your `PINECONE_API_KEY` is set in `.env`.  
+This will create a local Qdrant vector database and embed all downloaded PDFs.  
 Embedding model used: **BAAI/bge-small-en**
 ```bash
 python ragChatbot/vectorSetup.py
@@ -106,6 +107,6 @@ python ragChatbot/slmSetup.py
 
 ---
 
-## You're all set 
+## You're all set! ✅
 
 **Ask legal questions. Get answers grounded strictly in law.**

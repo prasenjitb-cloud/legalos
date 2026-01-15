@@ -4,6 +4,8 @@ langchain-core
 langchain-openai
 langchain-pinecone
 langchain-ollama
+pymilvus
+langchain-milvus
 
 pinecone
 
