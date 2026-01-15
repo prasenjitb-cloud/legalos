@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import os
 from datetime import datetime
+import argparse
 
 
 
@@ -103,12 +104,26 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
 # -------------------- MAIN --------------------
 
 def main():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    parser = argparse.ArgumentParser(
+        description="Download Central Acts PDFs from IndiaCode"
+    )
+
+    parser.add_argument(
+        "pdf_dir",
+        type=str,
+        help="Directory where PDFs will be stored"
+    )
+
+    args = parser.parse_args()
+
+    pdf_dir = os.path.abspath(args.pdf_dir)
+    log_dir = os.path.dirname(pdf_dir)
 
     download_central_acts_pdfs(
-        pdf_dir=os.path.join(BASE_DIR, "../stateActPdfs/data"),
-        log_dir=os.path.join(BASE_DIR, "../stateActPdfs")
+        pdf_dir=pdf_dir,
+        log_dir=log_dir
     )
+
 
 
 

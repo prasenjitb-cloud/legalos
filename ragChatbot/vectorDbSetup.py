@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+import argparse
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -104,18 +105,41 @@ def ingest_pdfs_from_dir(
 # -------------------- MAIN --------------------
 
 def main():
-    pdf_directory = "./stateActPdfs/data"
+    parser = argparse.ArgumentParser(
+        description="Ingest PDFs into Qdrant vector database"
+    )
+
+    parser.add_argument(
+        "pdf_dir",
+        type=str,
+        help="Directory containing PDF files to ingest"
+    )
+
+    parser.add_argument(
+        "db_dir",
+        type=str,
+        help="Directory where Qdrant vector DB will be created"
+    )
+
+    args = parser.parse_args()
+
+    pdf_dir = os.path.abspath(args.pdf_dir)
+    db_dir = os.path.abspath(args.db_dir)
+
+    if not os.path.isdir(pdf_dir):
+        raise ValueError(f"PDF directory does not exist: {pdf_dir}")
 
     vectorstore = setup_vector_db(
-        db_path="./DB",
+        db_path=db_dir,
         collection_name="state_acts",
     )
 
     ingest_pdfs_from_dir(
-        pdf_dir=pdf_directory,
+        pdf_dir=pdf_dir,
         vectorstore=vectorstore,
-        failed_log="failed_pdf_embeddings.txt",
+        failed_log=os.path.join(os.path.dirname(pdf_dir), "failed_pdf_embeddings.txt"),
     )
+
 
 
 if __name__ == "__main__":
