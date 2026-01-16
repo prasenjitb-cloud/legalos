@@ -109,14 +109,15 @@ def main():
     )
 
     parser.add_argument(
-        "pdf_dir",
+        "--outputDir",
+        required=True,
         type=str,
         help="Directory where PDFs will be stored"
     )
 
     args = parser.parse_args()
 
-    pdf_dir = os.path.abspath(args.pdf_dir)
+    pdf_dir = os.path.abspath(args.outputDir)
     log_dir = os.path.dirname(pdf_dir)
 
     download_central_acts_pdfs(

@@ -110,21 +110,23 @@ def main():
     )
 
     parser.add_argument(
-        "pdf_dir",
+        "--pdfActsDirectory",
+        required=True,
         type=str,
-        help="Directory containing PDF files to ingest"
+        help="Directory containing Act PDFs to ingest"
     )
 
     parser.add_argument(
-        "db_dir",
+        "--vectordbDirectory",
+        required=True,
         type=str,
         help="Directory where Qdrant vector DB will be created"
     )
 
     args = parser.parse_args()
 
-    pdf_dir = os.path.abspath(args.pdf_dir)
-    db_dir = os.path.abspath(args.db_dir)
+    pdf_dir = os.path.abspath(args.pdfActsDirectory)
+    db_dir = os.path.abspath(args.vectordbDirectory)
 
     if not os.path.isdir(pdf_dir):
         raise ValueError(f"PDF directory does not exist: {pdf_dir}")
@@ -139,8 +141,6 @@ def main():
         vectorstore=vectorstore,
         failed_log=os.path.join(os.path.dirname(pdf_dir), "failed_pdf_embeddings.txt"),
     )
-
-
-
+    
 if __name__ == "__main__":
     main()

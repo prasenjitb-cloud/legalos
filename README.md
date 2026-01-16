@@ -58,7 +58,7 @@ LANGSMITH_PROJECT=LegalOs
 
 ### Step 1: Download Central Acts PDFs locally
 
-This script **requires a mandatory argument** specifying where PDFs should be stored.
+This script **requires a mandatory named argument** specifying where PDFs should be stored.
 
 **Recommended path (used throughout this project):**
 ```text
@@ -67,7 +67,7 @@ This script **requires a mandatory argument** specifying where PDFs should be st
 
 Run:
 ```bash
-python ragChatbot/stateActsDownloader.py ./stateActPdfs/data
+python ragChatbot/stateActsDownloader.py --outputDir ./stateActPdfs/data
 ```
 
 This will create:
@@ -81,7 +81,7 @@ stateActPdfs/
 
 ### Step 2: Create Vector Database and Embed PDFs
 
-This script **requires two mandatory arguments**:
+This script **requires two mandatory named arguments**:
 1. **PDF directory** (input)
 2. **Vector DB directory** (output)
 
@@ -93,7 +93,9 @@ DB   : ./DB
 
 Run:
 ```bash
-python ragChatbot/vectorSetup.py ./stateActPdfs/data ./DB
+python ragChatbot/vectorSetup.py \
+  --pdfActsDirectory ./stateActPdfs/data \
+  --vectordbDirectory ./DB
 ```
 
 This will:
