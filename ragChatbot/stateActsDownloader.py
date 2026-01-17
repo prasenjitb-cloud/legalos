@@ -5,6 +5,11 @@ from datetime import datetime
 import argparse
 
 
+# -------------------- GLOBAL VARIABLES --------------------
+
+CENTRAL_ACTS_LIST_URL= "https://www.indiacode.nic.in/handle/123456789/1362/browse?type=shorttitle&rpp=845"
+INDIA_CODE_BASE_URL= "https://www.indiacode.nic.in"
+FAILED_LOG_FILE= "failed_pdf.txt"
 
 # -------------------- LOG FAILURE --------------------
 
@@ -26,7 +31,7 @@ def log_failure(log_file, idx, act_page_url, pdf_url, filename, error):
 
 def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
     # This is the central acts list page link.
-    first_link = "https://www.indiacode.nic.in/handle/123456789/1362/browse?type=shorttitle&rpp=845"
+    first_link = CENTRAL_ACTS_LIST_URL
     # Headers for our crawlers to work smoothly.
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -34,13 +39,13 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
         "Referer": "https://www.indiacode.nic.in/"
     }
 
-    base_url = "https://www.indiacode.nic.in"
+    base_url = INDIA_CODE_BASE_URL
     # Making the directory to save pdfs.
     os.makedirs(pdf_dir, exist_ok=True)
 
     # Making the log file.
     os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, "failed_pdfs.txt")
+    log_file = os.path.join(log_dir, FAILED_LOG_FILE)
     open(log_file, "w").close()
 
     session = requests.Session()

@@ -103,11 +103,6 @@ This will:
 - Embed all PDFs using **BAAI/bge-small-en**
 - Store vectors persistently inside `./DB`
 
-> ⚠️ **Important:**  
-> If you change the **DB path here**, you must update the same path in  
-> **`ragChatbot/slmSetup.py`**, as it currently assumes the vector database  
-> is located at `./DB`.
-
 ---
 
 ## Local SLM Setup (Ollama)
@@ -145,15 +140,17 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-```bash
-python ragChatbot/slmSetup.py
+This script **requires one mandatory named argument**:
+1. **Vector DB directory** 
+
+**Recommended paths:**
+```text
+DB   : ./DB
 ```
 
-> ⚠️ This script assumes the vector database exists at:
-```text
-./DB
+```bash
+python ragChatbot/slmSetup.py --vectordbpath ./DB
 ```
-If you changed the DB location during ingestion, update it here as well.
 
 ---
 

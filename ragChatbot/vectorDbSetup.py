@@ -11,15 +11,20 @@ from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 
+# -------------------- GLOBAL VARIABLES --------------------
+
+COLLECTION_NAME = "state_acts"
+MODEL_NAME = "BAAI/bge-small-en"
+FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
 
 # -------------------- DB SETUP --------------------
 
 def setup_vector_db(
-    db_path: str = "./DB",
-    collection_name: str = "state_acts",
+    db_path: str ,
+    collection_name: str ,
 ):
     embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en",
+        model_name= MODEL_NAME,
         encode_kwargs={"normalize_embeddings": True},
     )
 
@@ -47,7 +52,7 @@ def setup_vector_db(
 def ingest_pdfs_from_dir(
     pdf_dir: str,
     vectorstore: QdrantVectorStore,
-    failed_log: str = "failed_pdfs.txt",
+    failed_log: str ,
 ):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1200,
@@ -82,7 +87,7 @@ def ingest_pdfs_from_dir(
                     page_content=d.page_content,
                     metadata={
                         **d.metadata,
-                        "doc_type": "state_act",
+                        "doc_type": COLLECTION_NAME,
                         "source": "indiacode",
                         "file_name": filename,
                         "pdf_number": pdf_counter,
@@ -133,13 +138,13 @@ def main():
 
     vectorstore = setup_vector_db(
         db_path=db_dir,
-        collection_name="state_acts",
+        collection_name= COLLECTION_NAME,
     )
 
     ingest_pdfs_from_dir(
         pdf_dir=pdf_dir,
         vectorstore=vectorstore,
-        failed_log=os.path.join(os.path.dirname(pdf_dir), "failed_pdf_embeddings.txt"),
+        failed_log=os.path.join(os.path.dirname(pdf_dir), FAILED_LOG_FILE),
     )
     
 if __name__ == "__main__":
