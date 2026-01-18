@@ -1,0 +1,35 @@
+# Load environment variables from .env files
+python-dotenv
+
+# Used for downloading HTML pages and PDFs from IndiaCode
+requests
+
+# Used to parse HTML pages while scraping act listings
+beautifulsoup4
+
+# Required by PyPDFLoader to read PDF files
+pypdf
+
+# Core LangChain primitives (PromptTemplate, Document, retriever, etc.)
+langchain-core
+
+# Community loaders like PyPDFLoader
+langchain-community
+
+# Used for RecursiveCharacterTextSplitter during PDF chunking
+langchain-text-splitters
+
+# HuggingFaceEmbeddings wrapper used for BGE embeddings
+langchain-huggingface
+
+# Backend dependency for HuggingFaceEmbeddings (BAAI/bge-small-en)
+sentence-transformers
+
+# LangChain integration for Qdrant vector store
+langchain-qdrant
+
+# Qdrant client used to create and access local vector database
+qdrant-client
+
+# Used to run local SLM via Ollama (ChatOllama)
+langchain-ollama
