@@ -33,3 +33,6 @@ qdrant-client
 
 # Used to run local SLM via Ollama (ChatOllama)
 langchain-ollama
+
+# Used to run local Comparitor LLM  (Gemini)
+langchain-groq

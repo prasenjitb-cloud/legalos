@@ -20,7 +20,7 @@ Before running **Legalos**, make sure you have:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/legalos.git
+git clone https://github.com/prasenjitb-cloud/legalos.git
 ```
 
 ### 2. Navigate to the project directory

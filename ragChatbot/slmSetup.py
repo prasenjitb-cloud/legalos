@@ -4,40 +4,14 @@ load_dotenv()
 import argparse
 import os
 from langchain_ollama import ChatOllama
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-from langchain_core.prompts import PromptTemplate
-
-
+from langchain_groq import ChatGroq
+from utils.contextRetriever import getContext
+from utils.chainInvoker import chainInvoker
 # -------------------- GLOBAL VARIABLES --------------------
 
-COLLECTION_NAME = "state_acts"
-EMBEDDINGS_MODEL_NAME = "BAAI/bge-small-en"
 SLM_MODEL_NAME = "qwen2.5:3b-instruct"
+COMPARITOR_MODEL_NAME = "gemini-2.0-flash-lite"
 FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
-
-
-# -------------------- VECTOR STORE SETUP --------------------
-
-def setup_vectorstore(
-    db_path: str ,
-    collection_name: str ,
-):
-    embeddings = HuggingFaceEmbeddings(
-        model_name= EMBEDDINGS_MODEL_NAME,
-        encode_kwargs={"normalize_embeddings": True},
-    )
-
-    client = QdrantClient(path=db_path)
-
-    vectorstore = QdrantVectorStore(
-        client=client,
-        collection_name=collection_name,
-        embedding=embeddings,
-    )
-
-    return vectorstore
 
 
 # -------------------- LLM SETUP --------------------
@@ -45,44 +19,23 @@ def setup_vectorstore(
 def setup_llm():
     return ChatOllama(
         model= SLM_MODEL_NAME,
-        temperature=0,
+        temperature=1,
     )
+# -------------------- COMPARITOR LLM SETUP --------------------
 
-
-# -------------------- PROMPT --------------------
-
-def setup_prompt():
-    return PromptTemplate(
-        input_variables=["context", "question"],
-        template="""
-You are a legal assistant.
-
-Answer ONLY using the provided legal documents.
-If the answer is not present, say "Not found in the documents".
-Mention the Act name and Section number if available.
-
-Context:
-{context}
-
-Question:
-{question}
-
-Answer:
-"""
-    )
+def setup_comparitor():
+    return  ChatGroq(
+    model_name="llama-3.3-70b-versatile",
+    temperature=0.7
+)
 
 
 # -------------------- MAIN RAG LOOP --------------------
 
 def run_rag(db_path: str):
-    vectorstore = setup_vectorstore(
-        db_path=db_path,
-        collection_name=COLLECTION_NAME,
-    )
 
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
     llm = setup_llm()
-    prompt = setup_prompt()
+    comp = setup_comparitor()
 
     while True:
         q = input("\nAsk a legal question (type 'exit' to quit): ").strip()
@@ -95,19 +48,37 @@ def run_rag(db_path: str):
             print("Empty question. Try again.")
             continue
 
-        retrieved_docs = retriever.invoke(q)
+        retrieved_docs = getContext(
+            q=q,
+            db_path=db_path
+        )
 
         if not retrieved_docs:
             print("\nAnswer:\n Not found in the documents")
             continue
 
-        context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
-        final_prompt = prompt.invoke(
-            {"context": context_text, "question": q}
-        )
+        result1= chainInvoker(llm,retrieved_docs,q,SLM_MODEL_NAME)
+        result2=chainInvoker(comp,retrieved_docs,q,COMPARITOR_MODEL_NAME)
 
-        answer = llm.invoke(final_prompt)
-        print("\nAnswer:\n", answer.content)
+
+
+        if not result1.answer_found:
+            print("Not found in the documents.")
+        else:
+            print("SLM")
+            print(result1.explanation)
+            for c in result1.citations:
+                print(c.page, c.quote)
+
+        print("")
+
+        if not result2.answer_found:
+            print("Not found in the documents.")
+        else:
+            print("LLM")
+            print(result2.explanation)
+            for c in result2.citations:
+                print(c.page, c.quote)
 
 
 
