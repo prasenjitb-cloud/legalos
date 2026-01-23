@@ -1,8 +1,13 @@
-from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.documents import Document
+import langchain_qdrant as _langchain_qdrant
+import qdrant_client as _qdrant_client
+import langchain_huggingface as _langchain_huggingface
+import langchain_core.documents as _documents
 
+# alias back to original names
+QdrantVectorStore = _langchain_qdrant.QdrantVectorStore
+QdrantClient = _qdrant_client.QdrantClient
+HuggingFaceEmbeddings = _langchain_huggingface.HuggingFaceEmbeddings
+Document = _documents.Document
 
 
 # -------------------- GLOBAL VARIABLES --------------------

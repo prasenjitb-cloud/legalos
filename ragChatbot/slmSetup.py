@@ -1,12 +1,21 @@
-from dotenv import load_dotenv
-load_dotenv()
+import dotenv as _dotenv
+_dotenv.load_dotenv()
 
 import argparse
 import os
-from langchain_ollama import ChatOllama
-from langchain_groq import ChatGroq
-from utils.contextRetriever import getContext
-from utils.chainInvoker import chainInvoker
+
+import langchain_ollama as _langchain_ollama
+import langchain_groq as _langchain_groq
+
+import utils.contextRetriever as _contextRetriever
+import utils.chainInvoker as _chainInvoker
+
+# alias back to original names
+ChatOllama = _langchain_ollama.ChatOllama
+ChatGroq = _langchain_groq.ChatGroq
+getContext = _contextRetriever.getContext
+chainInvoker = _chainInvoker.chainInvoker
+
 # -------------------- GLOBAL VARIABLES --------------------
 
 SLM_MODEL_NAME = "qwen2.5:3b-instruct"

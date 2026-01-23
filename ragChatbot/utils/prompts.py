@@ -1,5 +1,6 @@
-from langchain_core.prompts import PromptTemplate
+import langchain_core.prompts as _prompts
 
+PromptTemplate = _prompts.PromptTemplate
 
 def setup_prompt(parser):
     return PromptTemplate(

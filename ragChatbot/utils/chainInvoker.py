@@ -1,11 +1,20 @@
-from langchain_core.output_parsers import PydanticOutputParser
-from .promptSchema import LegalAnswer
-from langchain_core.documents import Document
-from .contextRetriever import format_docs
-from .prompts import setup_prompt
+import langchain_core.output_parsers as _output_parsers
+import langchain_core.documents as _documents
+
+import utils.promptSchema as _promptSchema
+import utils.contextRetriever as _contextRetriever
+import utils.prompts as _prompts
+
 import json
 from datetime import datetime
 from pathlib import Path
+
+# alias back to original names
+PydanticOutputParser = _output_parsers.PydanticOutputParser
+Document = _documents.Document
+LegalAnswer = _promptSchema.LegalAnswer
+format_docs = _contextRetriever.format_docs
+setup_prompt = _prompts.setup_prompt
 
 LOG_FILE = Path("rag_runs.jsonl")
 

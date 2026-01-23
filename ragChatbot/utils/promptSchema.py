@@ -1,6 +1,11 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+import typing as _typing
+import pydantic as _pydantic
 
+List = _typing.List
+Optional = _typing.Optional
+
+BaseModel = _pydantic.BaseModel
+Field = _pydantic.Field
 
 class Citation(BaseModel):
     pdf_number: int = Field(..., description="PDF number from metadata")

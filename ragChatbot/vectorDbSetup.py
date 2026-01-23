@@ -1,15 +1,27 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
+import dotenv as _dotenv
+_dotenv.load_dotenv()
 
 import argparse
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
+
+import langchain_community.document_loaders as _doc_loaders
+import langchain_text_splitters as _text_splitters
+import langchain_core.documents as _documents
+import langchain_huggingface as _hf
+import langchain_qdrant as _lq
+import qdrant_client as _qc
+import qdrant_client.http.models as _qc_models
+
+# alias back to original names
+PyPDFLoader = _doc_loaders.PyPDFLoader
+RecursiveCharacterTextSplitter = _text_splitters.RecursiveCharacterTextSplitter
+Document = _documents.Document
+HuggingFaceEmbeddings = _hf.HuggingFaceEmbeddings
+QdrantVectorStore = _lq.QdrantVectorStore
+QdrantClient = _qc.QdrantClient
+Distance = _qc_models.Distance
+VectorParams = _qc_models.VectorParams
 
 # -------------------- GLOBAL VARIABLES --------------------
 

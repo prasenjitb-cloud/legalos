@@ -1,8 +1,12 @@
-from bs4 import BeautifulSoup
+import bs4 as _bs4
 import requests
 import os
-from datetime import datetime
+import datetime
 import argparse
+
+# alias back to original name
+BeautifulSoup = _bs4.BeautifulSoup
+datetime = datetime.datetime
 
 
 # -------------------- GLOBAL VARIABLES --------------------
