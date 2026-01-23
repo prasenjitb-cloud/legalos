@@ -100,7 +100,7 @@ We need to figure out a way to extract the necessary context from the query firs
 _____________________________________________________________________________________________________________________
 
 
-I have referred a some research papers on how to optimize rag with slms.
+I have referred some research papers on how to optimize rag with slms.
 
 1. RoseRAG: Robust Retrieval-augmented Generation with Small-scale LLMs 
 via Margin-aware Preference Optimization
@@ -109,7 +109,7 @@ This one pitches an idea of using RoseRAG.
 For this we fine tune our model. 
 Basically while training we have a query and have ground truth.
 we generate multiple responses for a query and then ask it to rank them with scores 
-and valid and invalid then we try to maximise the margin between the least valid reponse 
+and also valid or invalid then we try to maximise the margin between the worst valid reponse 
 and most convincing invalid response. so our model learns to give more reliable answers 
 even when retrieval is noisy.
 
