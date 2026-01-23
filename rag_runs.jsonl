@@ -96,3 +96,221 @@ lets try some questions from the sheet.
 Its not working of the questions, where the user is asking in very simple language. or when it is asked about situation or steps to take instead of the laws.
 
 We need to figure out a way to extract the necessary context from the query first and then use that to extract the answer. 
+
+_____________________________________________________________________________________________________________________
+
+
+I have referred a some research papers on how to optimize rag with slms.
+
+1. RoseRAG: Robust Retrieval-augmented Generation with Small-scale LLMs 
+via Margin-aware Preference Optimization
+
+This one pitches an idea of using RoseRAG. 
+For this we fine tune our model. 
+Basically while training we have a query and have ground truth.
+we generate multiple responses for a query and then ask it to rank them with scores 
+and valid and invalid then we try to maximise the margin between the least valid reponse 
+and most convincing invalid response. so our model learns to give more reliable answers 
+even when retrieval is noisy.
+
+_____________________________________________________________________________________________________________________
+
+2. Can Small Language Models With Retrieval-Augmented
+Generation Replace Large Language Models When Learning
+Computer Science? 
+
+This one pitches the idea of IC ( Intelligence Concentration )
+so we create 4 types of vector stores, 
+
+1. Knowledge base
+2. IC3
+3. IC2
+4. IC1
+
+
+IC1 → beginner / surface-level explanations
+
+IC2 → intermediate explanations
+
+IC3 → advanced / detailed reasoning
+
+KB → raw source-of-truth 
+
+
+So, what we have right now is KB. 
+to make IC3, we will give all the KB chunks with a prompt like,
+
+"Using the following statutory text, explain the legal rule,
+its scope, exceptions, and how courts interpret it.
+Avoid simplifying language."
+
+
+then give all IC3 chunks to make IC2, with prompt like, 
+
+"Rewrite this explanation for someone who understands law basics.
+Focus on applicability, procedure, and common use cases."
+
+then give all IC2 chunks to make IC1, with prompt like, 
+
+"Explain this in simple language for a non-lawyer.
+Focus on what it means and what the person can do."
+
+
+When a user asks:
+
+“Is sending threatening messages domestic violence?”
+
+Search IC1, IC2, IC3, KB in parallel
+
+Compute mean relevance per layer
+
+Pick highest-scoring layer
+
+Generate answer from that layer
+
+Attach KB citation (Act + section)
+
+
+We can setup updates after a long chat history, in the upper IC layers, regarding the what could user future questions be.
+In research paper experiment, this model with SLM gave similar results to GPT-4.
+
+
+_____________________________________________________________________________________________________________________
+
+3. Advances in Prompt Engineering and Retrieval Augmented Generation for Scalable AI Systems
+
+This one doesnt really pitches for a model, just explains how prompting should be done and how important it is.
+
+Some useful point were-
+
+1. we should enfore structure. We already are doing it via schemas.
+2. It puts a lot of emphasis on using dynamic prompts. 
+    Its like, When a query is received the model drafts a better prompt specific to that query,
+     which is then used to retrieve data and form a result.
+3. Further it pushes the idea that RL should be enforced on prompt system. And the need of self-optimized
+    prompt systems. 
+    Goal is to make AI system that continuously refine how they ask themselves questions.
+
+_____________________________________________________________________________________________________________________
+
+4. TAKE A STEP BACK: EVOKING REASONING VIA ABSTRACTION IN LARGE LANGUAGE MODELS
+
+    The paper says, Step-Back Prompting is
+
+    Instead of attacking a hard, detail-heavy question directly, we step back and ask a 
+    higher-level abstraction question first.
+
+    That abstraction gives us the right facts or principles.
+    Then we come back and answer the original question correctly.
+
+    Its like-
+
+    Zoom out → understand the context → zoom back in → then answer the question
+
+    For RAGs its like-
+
+    Generate a high-level question that helps retrieve relevant background knowledge.
+    Use the retrieved info to answer the original question.
+
+_____________________________________________________________________________________________________________________
+
+Now for prompting, By using a structureed output we have already made our model much better.
+What i have learnt is, dynamic prompting should be our next step . 
+I want to propose a model like this-
+
+User Query
+   ↓
+Query Interpreter Prompt
+   ↓
+Retriever
+   ↓
+Context-Aware Prompt Generator
+   ↓
+SLM (Answer Generator)
+   ↓
+Verifier / Guard Prompt
+
+->> Query Interpreter Prompt
+ 
+
+        """You are a legal query interpreter.
+
+        Task:
+        1. Identify the legal domain (e.g., family law, criminal law, labor law).
+        2. Extract key legal concepts.
+        3. Rewrite the query into 3–5 neutral, statute-style search queries.
+
+        Rules:
+        - Do NOT answer the user.
+        - Do NOT give legal advice.
+        - Be factual and concise.
+
+        User Query:
+        {user_query}"""
+
+
+    and we will structure the output like-
+
+    {
+    "domain": "family law",
+    "concepts": ["divorce", "child custody"],
+    "search_queries": [
+        "custody determination under Indian family law",
+        "factors for child custody decisions India",
+        "guardianship rights under Hindu Minority and Guardianship Act"
+    ]
+    }
+
+    we can also ask what type of question it was, user wants facts, or user wants advice to resolve things,
+    user is the victim or user is facing charges, or maybe all this isnt applicable.
+
+
+->> After retrieving the context. We make a tailored prompt. 
+    we now seperately have domain, and concepts. Maybe if domain is criminal law, 
+    we want strict statutory interpretation style. or if the question suggests that user is facing charges
+    and wants a solution, so we can explicitly ask for it.
+
+    one more benifit would be, that for questions, asked in very natural language, Our retriver doesnt work
+    very good, because it searches for law language. So having one intermediate prompt will help us with that.
+    intermediate prompt will extract the context and add keywords which will get us the required context.
+
+    
+    We can make this dynamic prompt by a function
+
+    something like-
+
+            def build_prompt(domain, concepts, retrieved_docs):
+            if domain == "criminal law":
+                style = "strict statutory interpretation"
+            elif domain == "family law":
+                style = "rights, remedies, and procedures"
+            else:
+                style = "general legal explanation"
+
+            return f"""
+        You are a legal document analysis assistant.
+
+        Style: {style}
+
+        Rules:
+        - Use ONLY the provided context.
+        - Cite the Act name and section where applicable.
+        - If information is missing, say "Not found in the provided sources".
+        - Do NOT speculate or give personal advice.
+
+        Context:
+        {retrieved_docs}
+
+        Question:
+        {user_query}
+        """
+
+
+->>> Finally we can have a verifier or reviewer, Which double checks is everything is right, and
+    if model is picking up the right chunk for answering from the k retrieved chunks. Also if, the
+    context might be there, but model isnt using it. So we can know if the solution was valid or not.
+    If not, we can loop back to the process again with a msg saying what went wrong.
+
+
+
+
