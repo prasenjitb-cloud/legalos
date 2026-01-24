@@ -2,7 +2,6 @@ import langchain_core.output_parsers as _output_parsers
 import langchain_core.documents as _documents
 
 import utils.promptSchema as _promptSchema
-import utils.contextRetriever as _contextRetriever
 import utils.prompts as _prompts
 
 import json
@@ -13,7 +12,6 @@ from pathlib import Path
 PydanticOutputParser = _output_parsers.PydanticOutputParser
 Document = _documents.Document
 LegalAnswer = _promptSchema.LegalAnswer
-format_docs = _contextRetriever.format_docs
 setup_prompt = _prompts.setup_prompt
 
 LOG_FILE = Path("rag_runs.jsonl")
@@ -54,7 +52,7 @@ def chainInvoker(
 ):
     parser = PydanticOutputParser(pydantic_object=LegalAnswer)
 
-    context= format_docs(retrieved_docs)
+    context= retrieved_docs
 
     prompt = setup_prompt(parser)
 

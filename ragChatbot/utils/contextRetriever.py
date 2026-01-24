@@ -66,4 +66,4 @@ def getContext(
 
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
-    return retriever.invoke(q)
+    return format_docs(retriever.invoke(q))
