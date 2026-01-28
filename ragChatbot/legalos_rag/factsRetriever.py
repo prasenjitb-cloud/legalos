@@ -49,7 +49,7 @@ file_name: {meta.get("file_name")}
     return "\n\n".join(blocks)
 
 
-def getContext(
+def getFacts(
         q:str,
         db_path: str
 ):

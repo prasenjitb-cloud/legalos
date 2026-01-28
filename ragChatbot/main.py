@@ -1,5 +1,5 @@
-import dotenv as _dotenv
-_dotenv.load_dotenv()
+import dotenv 
+dotenv.load_dotenv()
 
 import argparse
 import os
@@ -7,8 +7,8 @@ import os
 import langchain_ollama 
 import langchain_groq
 
-import legalos_rag.contextRetriever 
-import legalos_rag.chainInvoker 
+import legalos_rag.factsRetriever 
+import legalos_rag.ragInvoker 
 
 # -------------------- GLOBAL VARIABLES --------------------
 
@@ -51,7 +51,7 @@ def run_rag(db_path: str):
             print("Empty question. Try again.")
             continue
 
-        retrieved_docs = legalos_rag.contextRetriever.getContext(
+        retrieved_docs = legalos_rag.factsRetriever.getFacts(
             q=q,
             db_path=db_path
         )
@@ -60,8 +60,8 @@ def run_rag(db_path: str):
             print("\nAnswer:\n Not found in the documents")
             continue
 
-        result1= legalos_rag.chainInvoker.invoker(llm,retrieved_docs,q,SLM_MODEL_NAME)
-        result2= legalos_rag.chainInvoker.invoker(comp,retrieved_docs,q,COMPARITOR_MODEL_NAME)
+        result1= legalos_rag.ragInvoker.invoker(llm,retrieved_docs,q,SLM_MODEL_NAME)
+        result2= legalos_rag.ragInvoker.invoker(comp,retrieved_docs,q,COMPARITOR_MODEL_NAME)
 
 
 

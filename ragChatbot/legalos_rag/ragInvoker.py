@@ -50,7 +50,7 @@ def invoker(
 
     prompt = legalos_rag.prompts.setup_prompt(parser)
 
-    # 1️⃣ Render final prompt text (for logging)
+    # Render final prompt text (for logging)
     final_prompt_text = prompt.format(
         context=context,
         question=q
@@ -65,10 +65,10 @@ def invoker(
         else raw_response
     )
 
-    # 3️⃣ Parse into schema
+    # Parse into schema
     parsed_result = parser.parse(raw_text)
 
-    # 4️⃣ Log everything you want
+    # Log everything you want
     log_rag_run(
         query=q,
         final_prompt=final_prompt_text,
