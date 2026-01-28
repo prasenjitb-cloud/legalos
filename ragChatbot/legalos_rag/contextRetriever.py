@@ -1,13 +1,7 @@
-import langchain_qdrant as _langchain_qdrant
-import qdrant_client as _qdrant_client
-import langchain_huggingface as _langchain_huggingface
-import langchain_core.documents as _documents
-
-# alias back to original names
-QdrantVectorStore = _langchain_qdrant.QdrantVectorStore
-QdrantClient = _qdrant_client.QdrantClient
-HuggingFaceEmbeddings = _langchain_huggingface.HuggingFaceEmbeddings
-Document = _documents.Document
+import langchain_qdrant 
+import qdrant_client 
+import langchain_huggingface 
+import langchain_core.documents 
 
 
 # -------------------- GLOBAL VARIABLES --------------------
@@ -21,14 +15,14 @@ def setup_vectorstore(
     db_path: str ,
     collection_name: str ,
 ):
-    embeddings = HuggingFaceEmbeddings(
+    embeddings = langchain_huggingface.HuggingFaceEmbeddings(
         model_name= EMBEDDINGS_MODEL_NAME,
         encode_kwargs={"normalize_embeddings": True},
     )
 
-    client = QdrantClient(path=db_path)
+    client = qdrant_client.QdrantClient(path=db_path)
 
-    vectorstore = QdrantVectorStore(
+    vectorstore = langchain_qdrant.QdrantVectorStore(
         client=client,
         collection_name=collection_name,
         embedding=embeddings,
@@ -37,7 +31,7 @@ def setup_vectorstore(
     return vectorstore
 
 
-def format_docs(docs: list[Document]) -> str:
+def format_docs(docs: list[langchain_core.documents.Document]) -> str:
     blocks = []
     for i, doc in enumerate(docs, 1):
         meta = doc.metadata

@@ -1,18 +1,12 @@
-import langchain_core.output_parsers as _output_parsers
-import langchain_core.documents as _documents
+import langchain_core.output_parsers 
+import langchain_core.documents 
 
-import utils.promptSchema as _promptSchema
-import utils.prompts as _prompts
+import legalos_rag.promptSchema 
+import legalos_rag.prompts
 
 import json
 from datetime import datetime
 from pathlib import Path
-
-# alias back to original names
-PydanticOutputParser = _output_parsers.PydanticOutputParser
-Document = _documents.Document
-LegalAnswer = _promptSchema.LegalAnswer
-setup_prompt = _prompts.setup_prompt
 
 LOG_FILE = Path("rag_runs.jsonl")
 
@@ -44,17 +38,17 @@ def safe_json(obj):
 
 
 
-def chainInvoker(
+def invoker(
         llm,
-        retrieved_docs: list[Document],
+        retrieved_docs: list[langchain_core.documents.Document],
         q: str,
         model: str
 ):
-    parser = PydanticOutputParser(pydantic_object=LegalAnswer)
+    parser = langchain_core.output_parsers.PydanticOutputParser(pydantic_object=legalos_rag.promptSchema.LegalAnswer)
 
     context= retrieved_docs
 
-    prompt = setup_prompt(parser)
+    prompt = legalos_rag.prompts.setup_prompt(parser)
 
     # 1️⃣ Render final prompt text (for logging)
     final_prompt_text = prompt.format(

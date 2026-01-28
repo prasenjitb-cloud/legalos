@@ -1,9 +1,7 @@
-import langchain_core.prompts as _prompts
-
-PromptTemplate = _prompts.PromptTemplate
+import langchain_core.prompts
 
 def setup_prompt(parser):
-    return PromptTemplate(
+    return langchain_core.prompts.PromptTemplate(
         input_variables=["context", "question"],
         partial_variables={
             "format_instructions": parser.get_format_instructions()

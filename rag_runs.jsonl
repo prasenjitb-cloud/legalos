@@ -311,6 +311,3 @@ Verifier / Guard Prompt
     context might be there, but model isnt using it. So we can know if the solution was valid or not.
     If not, we can loop back to the process again with a msg saying what went wrong.
 
-
-
-

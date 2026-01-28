@@ -1,27 +1,17 @@
 import os
 
-import dotenv as _dotenv
-_dotenv.load_dotenv()
+import dotenv
+dotenv.load_dotenv()
 
 import argparse
 
-import langchain_community.document_loaders as _doc_loaders
-import langchain_text_splitters as _text_splitters
-import langchain_core.documents as _documents
-import langchain_huggingface as _hf
-import langchain_qdrant as _lq
-import qdrant_client as _qc
-import qdrant_client.http.models as _qc_models
-
-# alias back to original names
-PyPDFLoader = _doc_loaders.PyPDFLoader
-RecursiveCharacterTextSplitter = _text_splitters.RecursiveCharacterTextSplitter
-Document = _documents.Document
-HuggingFaceEmbeddings = _hf.HuggingFaceEmbeddings
-QdrantVectorStore = _lq.QdrantVectorStore
-QdrantClient = _qc.QdrantClient
-Distance = _qc_models.Distance
-VectorParams = _qc_models.VectorParams
+import langchain_community.document_loaders
+import langchain_text_splitters 
+import langchain_core.documents 
+import langchain_huggingface 
+import langchain_qdrant 
+import qdrant_client 
+import qdrant_client.http.models 
 
 # -------------------- GLOBAL VARIABLES --------------------
 
@@ -35,22 +25,22 @@ def setup_vector_db(
     db_path: str ,
     collection_name: str ,
 ):
-    embeddings = HuggingFaceEmbeddings(
+    embeddings = langchain_huggingface.HuggingFaceEmbeddings(
         model_name= MODEL_NAME,
         encode_kwargs={"normalize_embeddings": True},
     )
 
-    client = QdrantClient(path=db_path)
+    client = qdrant_client.QdrantClient(path=db_path)
 
     client.recreate_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(
+        vectors_config= qdrant_client.http.models.VectorParams(
             size=384,
-            distance=Distance.COSINE,
+            distance=qdrant_client.http.models.Distance.COSINE,
         ),
     )
 
-    vectorstore = QdrantVectorStore(
+    vectorstore = langchain_qdrant.QdrantVectorStore(
         client=client,
         collection_name=collection_name,
         embedding=embeddings,
@@ -63,10 +53,10 @@ def setup_vector_db(
 
 def ingest_pdfs_from_dir(
     pdf_dir: str,
-    vectorstore: QdrantVectorStore,
+    vectorstore: langchain_qdrant.QdrantVectorStore,
     failed_log: str ,
 ):
-    splitter = RecursiveCharacterTextSplitter(
+    splitter = langchain_text_splitters.RecursiveCharacterTextSplitter(
         chunk_size=1200,
         chunk_overlap=200,
         separators=["\n\n", "\n", ". ", " ", ""],
@@ -84,7 +74,7 @@ def ingest_pdfs_from_dir(
         print(f"Processing PDF #{pdf_counter}: {filename}")
 
         try:
-            loader = PyPDFLoader(pdf_path)
+            loader = langchain_community.document_loaders.PyPDFLoader(pdf_path)
             docs = loader.load()
 
             docs = [
@@ -95,7 +85,7 @@ def ingest_pdfs_from_dir(
             splits = splitter.split_documents(docs)
 
             enriched_docs = [
-                Document(
+                langchain_core.documents.Document(
                     page_content=d.page_content,
                     metadata={
                         **d.metadata,

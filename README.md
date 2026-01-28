@@ -166,12 +166,12 @@ DB   : ./DB
 ```
 
 ```bash
-python ragChatbot/slmSetup.py --vectordbpath ./DB
+python ragChatbot/main.py --vectordbpath ./DB
 ```
 
----# Utils Structure & Execution Flow
+---# legalos_rag Structure & Execution Flow
 
-## 📂 `utils/` Directory
+## 📂 `legalos_rag/` Directory
 
 ### `promptSchema.py`
 

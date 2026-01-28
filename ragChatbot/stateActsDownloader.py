@@ -1,12 +1,9 @@
-import bs4 as _bs4
+import bs4 
 import requests
 import os
 import datetime
 import argparse
 
-# alias back to original name
-BeautifulSoup = _bs4.BeautifulSoup
-datetime = datetime.datetime
 
 
 # -------------------- GLOBAL VARIABLES --------------------
@@ -20,7 +17,7 @@ FAILED_LOG_FILE= "failed_pdf.txt"
 def log_failure(log_file, idx, act_page_url, pdf_url, filename, error):
     with open(log_file, "a") as log:
         log.write(
-            f"[{datetime.now().isoformat()}]\n"
+            f"[{datetime.datetime.now().isoformat()}]\n"
             f"Index      : {idx}\n"
             f"Act Page   : {act_page_url}\n"
             f"PDF URL    : {pdf_url}\n"
@@ -53,7 +50,7 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
     open(log_file, "w").close()
 
     session = requests.Session()
-    soup = BeautifulSoup(
+    soup = bs4.BeautifulSoup(
         session.get(first_link, headers=headers, timeout=30).text,
         "html.parser"
     )
@@ -77,7 +74,7 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
             page_html = session.get(
                 act_page_url, headers=headers, timeout=30
             ).text
-            soup2 = BeautifulSoup(page_html, "html.parser")
+            soup2 = bs4.BeautifulSoup(page_html, "html.parser")
 
             pdf_anchor = soup2.select_one("a[href$='.pdf']")
             if not pdf_anchor:

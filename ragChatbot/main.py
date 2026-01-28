@@ -4,17 +4,11 @@ _dotenv.load_dotenv()
 import argparse
 import os
 
-import langchain_ollama as _langchain_ollama
-import langchain_groq as _langchain_groq
+import langchain_ollama 
+import langchain_groq
 
-import utils.contextRetriever as _contextRetriever
-import utils.chainInvoker as _chainInvoker
-
-# alias back to original names
-ChatOllama = _langchain_ollama.ChatOllama
-ChatGroq = _langchain_groq.ChatGroq
-getContext = _contextRetriever.getContext
-chainInvoker = _chainInvoker.chainInvoker
+import legalos_rag.contextRetriever 
+import legalos_rag.chainInvoker 
 
 # -------------------- GLOBAL VARIABLES --------------------
 
@@ -26,14 +20,14 @@ FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
 # -------------------- LLM SETUP --------------------
 
 def setup_llm():
-    return ChatOllama(
+    return langchain_ollama.ChatOllama(
         model= SLM_MODEL_NAME,
         temperature=1,
     )
 # -------------------- COMPARITOR LLM SETUP --------------------
 
 def setup_comparitor():
-    return  ChatGroq(
+    return  langchain_groq.ChatGroq(
     model_name="llama-3.3-70b-versatile",
     temperature=0.7
 )
@@ -57,7 +51,7 @@ def run_rag(db_path: str):
             print("Empty question. Try again.")
             continue
 
-        retrieved_docs = getContext(
+        retrieved_docs = legalos_rag.contextRetriever.getContext(
             q=q,
             db_path=db_path
         )
@@ -66,8 +60,8 @@ def run_rag(db_path: str):
             print("\nAnswer:\n Not found in the documents")
             continue
 
-        result1= chainInvoker(llm,retrieved_docs,q,SLM_MODEL_NAME)
-        result2=chainInvoker(comp,retrieved_docs,q,COMPARITOR_MODEL_NAME)
+        result1= legalos_rag.chainInvoker.invoker(llm,retrieved_docs,q,SLM_MODEL_NAME)
+        result2= legalos_rag.chainInvoker.invoker(comp,retrieved_docs,q,COMPARITOR_MODEL_NAME)
 
 
 
