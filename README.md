@@ -48,13 +48,16 @@ touch .env
 
 ### Add the following variables to `.env`
 
-> These are **optional** and used only for analytics/tracing.  
+> These langsmith variables are **optional** and used only for analytics/tracing.  
 > The system works fully offline without them.
+
+> The GROQ_API_KEY is used if you want to use the comparator model.
 
 ```env
 LANGSMITH_TRACING_V2=true
 LANGSMITH_API_KEY=your_langsmith_api_key_here
 LANGSMITH_PROJECT=LegalOs
+GROQ_API_KEY=groq_api_key
 ```
 
 ---
@@ -181,14 +184,14 @@ Contains all prompt schemas used for structured outputs and validation.
 
 Stores all prompt templates in one place.
 
-### `contextRetriever.py`
+### `factsRetriever.py`
 
 Contains functions to:
 
 - Retrieve relevant context from the vector database
 - Format the retrieved documents for model usage
 
-### `chainInvoker.py`
+### `ragInvoker.py`
 
 Acts as the final execution layer. Responsible for:
 
@@ -205,8 +208,8 @@ The main file is intentionally kept lightweight and orchestration-only.
 Steps:
 
 1. Initialize LLM / SLM objects.
-2. Retrieve relevant documents using `getContext()` from `contextRetriever.py` (given DB path and query).
-3. Invoke the model using `chainInvoker()` by passing:
+2. Retrieve relevant documents using `getFacts()` from `factsRetriever.py` (given DB path and query).
+3. Invoke the model using `ragInvoker()` by passing:
    - LLM object
    - Retrieved documents
    - User query
@@ -215,7 +218,7 @@ Steps:
 Example:
 
 ```python
-result = chainInvoker(llm, retrieved_docs, query, SLM_MODEL_NAME)
+result = ragInvoker(llm, retrieved_docs, query, SLM_MODEL_NAME)
 ```
 
 This design allows easily plugging in multiple models for comparison after a single retrieval step.
@@ -256,10 +259,10 @@ This file serves as:
                              │
                              ▼
          ┌───────────────────────────────────────────┐
-         │  getContext(db_path, query)               │
+         │  getFacts(db_path, query)               │
          │                                           │
          │  ┌─────────────────────────────────────┐  │
-         │  │    contextRetriever.py              │  │
+         │  │    factsRetriever.py              │  │
          │  │                                     │  │
          │  │  ┌───────────────────────────────┐  │  │
          │  │  │ Retrieve chunks from Vector   │  │  │
@@ -278,10 +281,10 @@ This file serves as:
                              │
                              ▼
 ┌───────────────────────────────────────────────────────────────┐
-│  chainInvoker(llm, retrieved_docs, query, model_name)         │
+│  ragInvoker(llm, retrieved_docs, query, model_name)         │
 │                                                               │
 │  ┌──────────────────────────────────────────────────────────┐ │
-│  │               chainInvoker.py                            │ │
+│  │               ragInvoker.py                            │ │
 │  │                                                          │ │
 │  │  ┌────────────────────────────────────────────────────┐  │ │
 │  │  │ Load prompt template (from prompts.py)             │  │ │
@@ -292,7 +295,7 @@ This file serves as:
 │  │  └─────────────────────┬──────────────────────────────┘  │ │
 │  │                        ▼                                 │ │
 │  │  ┌────────────────────────────────────────────────────┐  │ │
-│  │  │ Assemble: prompt + context + query                 │  │ │
+│  │  │ Assemble: prompt + Facts + query                 │  │ │
 │  │  └─────────────────────┬──────────────────────────────┘  │ │
 │  │                        ▼                                 │ │
 │  │  ┌────────────────────────────────────────────────────┐  │ │
