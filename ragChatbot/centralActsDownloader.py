@@ -1,7 +1,7 @@
-from bs4 import BeautifulSoup
+import bs4
 import requests
 import os
-from datetime import datetime
+import datetime
 import argparse
 
 
@@ -9,14 +9,25 @@ import argparse
 
 CENTRAL_ACTS_LIST_URL= "https://www.indiacode.nic.in/handle/123456789/1362/browse?type=shorttitle&rpp=845"
 INDIA_CODE_BASE_URL= "https://www.indiacode.nic.in"
-FAILED_LOG_FILE= "failed_pdf.txt"
+FAILED_LOG_FILE= "failed_pdfs.txt"
 
 # -------------------- LOG FAILURE --------------------
 
 def log_failure(log_file, idx, act_page_url, pdf_url, filename, error):
+    """Append a failed download entry (index, URLs, filename, error) to the log file.
+    
+    Args:
+        log_file: File to log failed downloads
+        idx: Index of the failed download
+        act_page_url: URL of the act page
+        pdf_url: URL of the PDF
+        filename: Name of the PDF
+        error: Error message
+    """
+    
     with open(log_file, "a") as log:
         log.write(
-            f"[{datetime.now().isoformat()}]\n"
+            f"[{datetime.datetime.now().isoformat()}]\n"
             f"Index      : {idx}\n"
             f"Act Page   : {act_page_url}\n"
             f"PDF URL    : {pdf_url}\n"
@@ -30,6 +41,14 @@ def log_failure(log_file, idx, act_page_url, pdf_url, filename, error):
 # -------------------- DOWNLOAD CENTRAL ACT PDFS --------------------
 
 def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
+    """Scrape IndiaCode for Central Acts, download each PDF to pdf_dir, and log failures to log_dir.
+    
+    Args:
+        pdf_dir: Directory to save downloaded PDFs
+        log_dir: Directory to save log file
+        
+    """
+
     # This is the central acts list page link.
     first_link = CENTRAL_ACTS_LIST_URL
     # Headers for our crawlers to work smoothly.
@@ -49,7 +68,7 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
     open(log_file, "w").close()
 
     session = requests.Session()
-    soup = BeautifulSoup(
+    soup = bs4.BeautifulSoup(
         session.get(first_link, headers=headers, timeout=30).text,
         "html.parser"
     )
@@ -73,7 +92,7 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
             page_html = session.get(
                 act_page_url, headers=headers, timeout=30
             ).text
-            soup2 = BeautifulSoup(page_html, "html.parser")
+            soup2 = bs4.BeautifulSoup(page_html, "html.parser")
 
             pdf_anchor = soup2.select_one("a[href$='.pdf']")
             if not pdf_anchor:
@@ -109,6 +128,16 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
 # -------------------- MAIN --------------------
 
 def main():
+    """Parse CLI for output directory and run the Central Acts PDF downloader.
+    
+    Args:
+        outputDir: Directory to save downloaded PDFs
+
+    Raises:
+        ValueError: If the output directory does not exist
+    """
+
+
     parser = argparse.ArgumentParser(
         description="Download Central Acts PDFs from IndiaCode"
     )
@@ -119,6 +148,9 @@ def main():
         type=str,
         help="Directory where PDFs will be stored"
     )
+
+    if not os.path.isdir(args.outputDir):
+        raise ValueError(f"Output directory does not exist: {args.outputDir}")
 
     args = parser.parse_args()
 

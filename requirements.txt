@@ -31,5 +31,3 @@ langchain-qdrant
 # Qdrant client used to create and access local vector database
 qdrant-client
 
-# Used to run local SLM via Ollama (ChatOllama)
-langchain-ollama
