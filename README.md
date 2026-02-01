@@ -8,32 +8,32 @@
 
 ```text
 .
-├── DB
+├── vectorDB
 │   ├── collection
 │   │   └── central_acts
 │   │
-│   └── meta.json
+│   └── meta.json   # Qdrant DB metadata (vector size, collection config, etc.)
 │
-├── centralActPdfs
-│   ├── data
-│   │   ├── 189008.pdf
-│   │   ├── 189108.pdf
-│   │   └── ...
-│   │
-│   └── failed_pdfs.txt
+├── factsDB
+│   └── centralActPdfs
+│       ├── data
+│       │   ├── 189008.pdf
+│       │   ├── 189108.pdf
+│       │   └── ...
+│       └── failed_pdfs.txt
 │
-├── legalos_rag
-│   ├── README.md
-│   ├── factsRetriever.py
-│   ├── promptSchema.py
-│   ├── prompts.py
-│   └── ragInvoker.py
-│
-├── ragChatbot
+├── chatbot
 │   ├── README.md
 │   ├── centralActsDownloader.py
 │   ├── main.py
-│   └── vectorDbSetup.py
+│   ├── vectorDbSetup.py
+│   └── legalos_rag
+│       ├── __init__.py
+│       ├── README.md
+│       ├── factsRetriever.py
+│       ├── promptSchema.py
+│       ├── prompts.py
+│       └── ragInvoker.py
 │
 └── requirements.txt
 ```
@@ -48,7 +48,7 @@ Before running **Legalos**, make sure you have:
   > Python 3.11 works best with LangChain. Newer versions may cause compatibility issues.
 - **pip** (or any Python package manager)
 
-> **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m ragChatbot.<module>`, e.g. `python -m ragChatbot.main --vectordbpath ./DB`. See `ragChatbot/README.md` for full commands.
+> **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g. `python -m chatbot.main --vectordbpath ./DB`. 
 
 ---
 

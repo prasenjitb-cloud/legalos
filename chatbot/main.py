@@ -6,8 +6,8 @@ import os
 
 import langchain_ollama
 
-import legalos_rag.factsRetriever 
-import legalos_rag.ragInvoker 
+import chatbot.legalos_rag.factsRetriever 
+import chatbot.legalos_rag.ragInvoker 
 
 # -------------------- GLOBAL VARIABLES --------------------
 
@@ -59,7 +59,7 @@ def run_rag(db_path: str):
             continue
 
         # Retrieve relevant documents from vector database using local module legalos_rag.factsRetriever
-        retrieved_docs = legalos_rag.factsRetriever.getFacts(
+        retrieved_docs = chatbot.legalos_rag.factsRetriever.getFacts(
             q=query,
             db_path=db_path
         )
@@ -69,7 +69,7 @@ def run_rag(db_path: str):
             continue
 
         # Generate RAG answer using local module legalos_rag.ragInvoker
-        result= legalos_rag.ragInvoker.invoker(slm,retrieved_docs,query,SLM_MODEL_NAME)
+        result= chatbot.legalos_rag.ragInvoker.invoker(slm,retrieved_docs,query,SLM_MODEL_NAME)
 
 
 

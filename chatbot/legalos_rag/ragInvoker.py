@@ -1,8 +1,8 @@
 import langchain_core.output_parsers 
 import langchain_core.documents 
 
-import legalos_rag.promptSchema 
-import legalos_rag.prompts
+import chatbot.legalos_rag.promptSchema 
+import chatbot.legalos_rag.prompts
 
 import json
 import datetime
@@ -75,10 +75,10 @@ def invoker(
         legalos_rag.promptSchema.LegalAnswer: Parsed result
     """
     
-    parser = langchain_core.output_parsers.PydanticOutputParser(pydantic_object=legalos_rag.promptSchema.LegalAnswer)
+    parser = langchain_core.output_parsers.PydanticOutputParser(pydantic_object=chatbot.legalos_rag.promptSchema.LegalAnswer)
 
 
-    prompt = legalos_rag.prompts.setup_rag_prompt_v1(parser)
+    prompt = chatbot.legalos_rag.prompts.setup_rag_prompt_v1(parser)
 
     # Render final prompt text (for logging)
     final_prompt_text = prompt.format(

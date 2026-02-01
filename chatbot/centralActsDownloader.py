@@ -129,12 +129,10 @@ def download_central_acts_pdfs(pdf_dir: str, log_dir: str):
 
 def main():
     """Parse CLI for output directory and run the Central Acts PDF downloader.
+    Creates the output directory (and any parent directories) if it does not exist.
     
     Args:
-        outputDir: Directory to save downloaded PDFs
-
-    Raises:
-        ValueError: If the output directory does not exist
+        outputDir: Directory where PDFs will be stored (created if missing)
     """
 
 
@@ -149,12 +147,9 @@ def main():
         help="Directory where PDFs will be stored"
     )
 
-    if not os.path.isdir(args.outputDir):
-        raise ValueError(f"Output directory does not exist: {args.outputDir}")
-
     args = parser.parse_args()
-
     pdf_dir = os.path.abspath(args.outputDir)
+    os.makedirs(pdf_dir, exist_ok=True)
     log_dir = os.path.dirname(pdf_dir)
 
     download_central_acts_pdfs(

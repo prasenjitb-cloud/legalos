@@ -3,11 +3,18 @@
 ### Directory structure (after setup)
 
 ```text
-ragChatbot/
+chatbot/
 ├── README.md
 ├── centralActsDownloader.py
 ├── main.py
-└── vectorDbSetup.py
+├── vectorDbSetup.py
+└── legalos_rag/
+    ├── README.md
+    ├── __init__.py
+    ├── promptSchema.py    
+    ├── prompts.py        
+    ├── factsRetriever.py 
+    └── ragInvoker.py 
 ```
 
 ---
@@ -19,21 +26,22 @@ This script **requires a mandatory named argument** specifying where PDFs should
 **Recommended path (used throughout this project):**
 
 ```text
-./centralActPdfs/data
+./factsDB/centralActPdfs/data
 ```
 
 Run:
 
 ```bash
-python -m ragChatbot.centralActsDownloader --outputDir ./centralActPdfs/data
+python -m chatbot.centralActsDownloader --outputDir ./factsDB/centralActPdfs/data
 ```
 
-This will create:
+This will create (under legalos project root):
 
 ```
-centralActPdfs/
-├── data/               # Downloaded PDFs
-├── failed_pdfs.txt     # Download failures (if any)
+factsDB/
+└── centralActPdfs/
+    ├── data/               # Downloaded PDFs
+    └── failed_pdfs.txt     # Download failures (if any)
 ```
 
 ---
@@ -48,23 +56,23 @@ This script **requires two mandatory named arguments**:
 **Recommended paths:**
 
 ```text
-PDFs : ./centralActPdfs/data
-DB   : ./DB
+PDFs : ./factsDB/centralActPdfs/data
+DB   : ./vectorDB
 ```
 
 Run:
 
 ```bash
-python -m ragChatbot.vectorDbSetup \
-  --pdfActsDirectory ./centralActPdfs/data \
-  --vectordbDirectory ./DB
+python -m chatbot.vectorDbSetup \
+  --pdfActsDirectory ./factsDB/centralActPdfs/data \
+  --vectordbDirectory ./vectorDB
 ```
 
 This will:
 
 - Create a **local, on-disk Qdrant vector database**
 - Embed all PDFs using **BAAI/bge-small-en**
-- Store vectors persistently inside `./DB`
+- Store vectors persistently inside `./vectorDB`
 
 ---
 
@@ -113,11 +121,11 @@ This script **requires one mandatory named argument**:
 **Recommended paths:**
 
 ```text
-DB   : ./DB
+DB   : ./vectorDB
 ```
 
 ```bash
-python -m ragChatbot.main --vectordbpath ./DB
+python -m chatbot.main --vectordbpath ./vectorDB
 ```
 
 ---
