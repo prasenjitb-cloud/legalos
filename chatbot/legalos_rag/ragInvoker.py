@@ -26,7 +26,6 @@ def log_rag_run(
         output: Output JSON string
         model: Model name
     """
-    print("WRITE LOG")
 
     log_entry = {
         "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -99,7 +98,6 @@ def invoker(
     parsed_result = parser.parse(raw_text)
 
     # Log everything you want
-    print("ABOUT TO WRITE LOG")
 
     log_rag_run(
         query=query,
