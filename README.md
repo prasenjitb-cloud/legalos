@@ -22,6 +22,9 @@
 │       │   └── ...
 │       └── failed_pdfs.txt
 │
+├── rag_config.json      # RAG config (vectordbpath, prompt, templatespath)
+├── ragPrompts.json      # Prompt templates JSON (versioned prompts like v1, v2, etc.)
+│
 ├── chatbot
 │   ├── README.md
 │   ├── centralActsDownloader.py
@@ -31,9 +34,10 @@
 │       ├── __init__.py
 │       ├── README.md
 │       ├── factsRetriever.py
-│       ├── promptSchema.py
-│       ├── prompts.py
-│       └── ragInvoker.py
+│       ├── ragInvoker.py
+│       └── prompt
+│           ├── prompts.py
+│           └── promptSchema.py
 │
 └── requirements.txt
 ```
@@ -48,7 +52,11 @@ Before running **Legalos**, make sure you have:
   > Python 3.11 works best with LangChain. Newer versions may cause compatibility issues.
 - **pip** (or any Python package manager)
 
-> **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g. `python -m chatbot.main --vectordbpath ./DB`. 
+> **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g.:
+>
+> ```bash
+> python -m chatbot.main --config ./rag_config.json
+> ```
 
 ---
 

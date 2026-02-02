@@ -10,11 +10,12 @@ chatbot/
 ├── vectorDbSetup.py
 └── legalos_rag/
     ├── README.md
-    ├── __init__.py
-    ├── promptSchema.py    
-    ├── prompts.py        
+    ├── __init__.py  
     ├── factsRetriever.py 
-    └── ragInvoker.py 
+    ├── ragInvoker.py
+    └── prompt
+        ├── prompts.py
+        └── promptSchema.py
 ```
 
 ---
@@ -114,18 +115,30 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-This script **requires one mandatory named argument**:
+The RAG CLI reads its settings either from a **JSON config file** or from **CLI flags**.
+Recommended usage is to keep everything in a config and pass that to `main`.
 
-1. **Vector DB directory**
-
-**Recommended paths:**
+**Recommended config file (from `legalos/`):**
 
 ```text
-DB   : ./vectorDB
+rag_config.json
+  ├─ vectordbpath   : \"./vectorDB\"
+  ├─ prompt         : \"v1\"
+  └─ templatespath  : \"./ragPrompts.json\"   # or any other prompt JSON
 ```
 
+**Run from the project root (`legalos/`):**
+
 ```bash
-python -m chatbot.main --vectordbpath ./vectorDB
+python -m chatbot.main --config ./rag_config.json
+```
+
+You can still override values via CLI, for example:
+
+```bash
+python -m chatbot.main \
+  --config ./rag_config.json \
+  --prompt v2
 ```
 
 ---
