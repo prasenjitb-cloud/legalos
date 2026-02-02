@@ -1,19 +1,21 @@
 import os
-from dotenv import load_dotenv
-load_dotenv()
+
+import dotenv
+dotenv.load_dotenv()
 
 import argparse
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
+
+import langchain_community.document_loaders
+import langchain_text_splitters 
+import langchain_core.documents 
+import langchain_huggingface 
+import langchain_qdrant 
+import qdrant_client 
+import qdrant_client.http.models 
 
 # -------------------- GLOBAL VARIABLES --------------------
 
-COLLECTION_NAME = "state_acts"
+COLLECTION_NAME = "central_acts"
 MODEL_NAME = "BAAI/bge-small-en"
 FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
 
@@ -23,22 +25,30 @@ def setup_vector_db(
     db_path: str ,
     collection_name: str ,
 ):
-    embeddings = HuggingFaceEmbeddings(
+    """Create a Qdrant collection and return a vectorstore with HuggingFace embeddings.
+    
+    Args:
+        db_path: Path to the Qdrant vector database
+        collection_name: Name of the Qdrant collection
+    """
+
+
+    embeddings = langchain_huggingface.HuggingFaceEmbeddings(
         model_name= MODEL_NAME,
         encode_kwargs={"normalize_embeddings": True},
     )
 
-    client = QdrantClient(path=db_path)
+    client = qdrant_client.QdrantClient(path=db_path)
 
     client.recreate_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(
+        vectors_config= qdrant_client.http.models.VectorParams(
             size=384,
-            distance=Distance.COSINE,
+            distance=qdrant_client.http.models.Distance.COSINE,
         ),
     )
 
-    vectorstore = QdrantVectorStore(
+    vectorstore = langchain_qdrant.QdrantVectorStore(
         client=client,
         collection_name=collection_name,
         embedding=embeddings,
@@ -51,10 +61,20 @@ def setup_vector_db(
 
 def ingest_pdfs_from_dir(
     pdf_dir: str,
-    vectorstore: QdrantVectorStore,
+    vectorstore: langchain_qdrant.QdrantVectorStore,
     failed_log: str ,
 ):
-    splitter = RecursiveCharacterTextSplitter(
+    """Load PDFs from a directory, chunk them, and add embeddings to the vectorstore. 
+    Log failures to failed_log.
+    
+    Args:
+        pdf_dir: Directory containing Act PDFs to ingest
+        vectorstore: Qdrant vector store to add embeddings to
+        failed_log: File to log failed PDF ingestion
+    """
+
+    
+    splitter = langchain_text_splitters.RecursiveCharacterTextSplitter(
         chunk_size=1200,
         chunk_overlap=200,
         separators=["\n\n", "\n", ". ", " ", ""],
@@ -72,7 +92,7 @@ def ingest_pdfs_from_dir(
         print(f"Processing PDF #{pdf_counter}: {filename}")
 
         try:
-            loader = PyPDFLoader(pdf_path)
+            loader = langchain_community.document_loaders.PyPDFLoader(pdf_path)
             docs = loader.load()
 
             docs = [
@@ -83,7 +103,7 @@ def ingest_pdfs_from_dir(
             splits = splitter.split_documents(docs)
 
             enriched_docs = [
-                Document(
+                langchain_core.documents.Document(
                     page_content=d.page_content,
                     metadata={
                         **d.metadata,
@@ -110,6 +130,15 @@ def ingest_pdfs_from_dir(
 # -------------------- MAIN --------------------
 
 def main():
+    """Parse CLI args, set up the vector DB, and ingest PDFs from the given directory.
+    
+    Args:
+        pdf_dir: Directory containing Act PDFs to ingest
+        db_dir: Directory where Qdrant vector DB will be created
+        
+    Raises:
+        ValueError: If the PDF directory does not exist
+    """
     parser = argparse.ArgumentParser(
         description="Ingest PDFs into Qdrant vector database"
     )

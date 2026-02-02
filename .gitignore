@@ -1,3 +1,5 @@
 .env
-/DB
-/stateActPdfs
+/vectorDB/*
+/factsDB/centralActPdfs/*
+/rag_runs.jsonl
+__pycache__/
