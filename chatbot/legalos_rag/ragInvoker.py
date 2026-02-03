@@ -1,8 +1,8 @@
 import langchain_core.output_parsers 
 import langchain_core.documents 
 
-import chatbot.legalos_rag.promptSchema 
-import chatbot.legalos_rag.prompts
+import chatbot.legalos_rag.prompt.promptSchema 
+import chatbot.legalos_rag.prompt.prompts
 
 import json
 import datetime
@@ -59,7 +59,8 @@ def invoker(
         slm,
         retrieved_docs: list[langchain_core.documents.Document],
         query: str,
-        model: str
+        model: str,
+        template: str,
 ):
     """Run the RAG pipeline: format prompt with docs and query, invoke the SLM, parse to LegalAnswer, and log the run.
     
@@ -68,16 +69,22 @@ def invoker(
         retrieved_docs: List of documents retrieved from the vector database
         query: Query string
         model: Model name
+        template: Full prompt template string containing placeholders
+                  for {format_instructions}, {facts}, and {question}.
 
     
     Returns:
-        legalos_rag.promptSchema.LegalAnswer: Parsed result
+        chatbot.legalos_rag.prompt.promptSchema.LegalAnswer: Parsed result
     """
     
-    parser = langchain_core.output_parsers.PydanticOutputParser(pydantic_object=chatbot.legalos_rag.promptSchema.LegalAnswer)
+    parser = langchain_core.output_parsers.PydanticOutputParser(
+        pydantic_object=chatbot.legalos_rag.prompt.promptSchema.LegalAnswer
+    )
 
-
-    prompt = chatbot.legalos_rag.prompts.setup_rag_prompt_v1(parser)
+    prompt = chatbot.legalos_rag.prompt.prompts.setup_rag_prompt_skeleton(
+        parser,
+        template,
+    )
 
     # Render final prompt text (for logging)
     final_prompt_text = prompt.format(

@@ -10,11 +10,12 @@ chatbot/
 ├── vectorDbSetup.py
 └── legalos_rag/
     ├── README.md
-    ├── __init__.py
-    ├── promptSchema.py    
-    ├── prompts.py        
+    ├── __init__.py  
     ├── factsRetriever.py 
-    └── ragInvoker.py 
+    ├── ragInvoker.py
+    └── prompt
+        ├── prompts.py
+        └── promptSchema.py
 ```
 
 ---
@@ -114,18 +115,21 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-This script **requires one mandatory named argument**:
+The RAG CLI now reads **only a single JSON config file**, passed as the sole CLI argument.
 
-1. **Vector DB directory**
-
-**Recommended paths:**
+**Config directory (from `legalos/`):**
 
 ```text
-DB   : ./vectorDB
+config/
+  └─ rag_v1.json
+       ├─ vectordbpath : \"./vectorDB\"
+       └─ template     : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
 ```
 
+**Run from the project root (`legalos/`):**
+
 ```bash
-python -m chatbot.main --vectordbpath ./vectorDB
+python -m chatbot.main --config ./config/rag_v1.json
 ```
 
 ---

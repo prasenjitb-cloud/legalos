@@ -1,8 +1,9 @@
 import dotenv 
 dotenv.load_dotenv()
 
-import argparse
 import os
+import json
+import argparse
 
 import langchain_ollama
 
@@ -35,7 +36,7 @@ def setup_slm():
 
 # -------------------- MAIN RAG LOOP --------------------
 
-def run_rag(db_path: str):
+def run_rag(db_path: str, template: str):
     """
     Run the interactive RAG system for legal question answering.
     
@@ -44,6 +45,7 @@ def run_rag(db_path: str):
     
     Args:
         db_path: Path to the Qdrant vector database
+        template: Full prompt template string to pass to the RAG invoker
     """
     slm = setup_slm()
 
@@ -69,7 +71,13 @@ def run_rag(db_path: str):
             continue
 
         # Generate RAG answer using local module legalos_rag.ragInvoker
-        result= chatbot.legalos_rag.ragInvoker.invoker(slm,retrieved_docs,query,SLM_MODEL_NAME)
+        result= chatbot.legalos_rag.ragInvoker.invoker(
+            slm,
+            retrieved_docs,
+            query,
+            SLM_MODEL_NAME,
+            template,
+        )
 
 
 
@@ -86,35 +94,54 @@ def run_rag(db_path: str):
 # -------------------- ENTRY POINT --------------------
 def main():
     """
-    Parse CLI args and run the RAG system.
-    
-    Args:
-        vectordbpath: Path to the Qdrant vector database
-    
-    Raises:
-        ValueError: If the vector database path does not exist
+    Parse configuration from a JSON config file and start the RAG loop.
     """
 
     parser = argparse.ArgumentParser(
-        description="Run Legalos RAG system"
+        description="Run Legalos RAG system (config-only)"
     )
-
     parser.add_argument(
-        "--vectordbpath",
+        "--config",
         required=True,
         type=str,
-        help="Path to the Qdrant vector database"
+        help="Path to JSON config file with vectordbpath and template",
     )
 
     args = parser.parse_args()
 
-    db_path = os.path.abspath(args.vectordbpath)
+    config_path = os.path.abspath(args.config)
 
+    if not os.path.isfile(config_path):
+        raise ValueError(f"Config file does not exist: {config_path}")
+
+    with open(config_path, "r", encoding="utf-8") as f:
+        config: dict = json.load(f)
+
+    # Required keys in the config:
+    #   - vectordbpath: path to the Qdrant vector database
+    #   - template: full prompt template string
+    vectordbpath = config.get("vectordbpath")
+    template = config.get("template")
+
+    if not vectordbpath:
+        raise ValueError("Config must provide 'vectordbpath'")
+
+    if not template:
+        raise ValueError("Config must provide 'template'")
+
+    # Normalize vector DB path to absolute
+    db_path = os.path.abspath(vectordbpath)
+
+    # Check that the vector DB path is a directory
     if not os.path.isdir(db_path):
-        raise ValueError(f"Vector database path does not exist: {db_path}")
-    
-    # Run the RAG system
-    run_rag(db_path=db_path)
+        raise ValueError(f"Vector DB path does not exist: {db_path}")
+
+    # -------------------- RUN --------------------
+    # Kick off the interactive RAG loop with resolved configuration.
+    run_rag(
+        db_path=db_path,
+        template=template,
+    )
 
 
 if __name__ == "__main__":
