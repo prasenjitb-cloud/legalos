@@ -1,9 +1,9 @@
 import dotenv 
 dotenv.load_dotenv()
 
-import argparse
 import os
 import json
+import argparse
 
 import langchain_ollama
 
@@ -36,7 +36,7 @@ def setup_slm():
 
 # -------------------- MAIN RAG LOOP --------------------
 
-def run_rag(db_path: str, prompt: str, templates_path: str | None):
+def run_rag(db_path: str, template: str):
     """
     Run the interactive RAG system for legal question answering.
     
@@ -45,8 +45,7 @@ def run_rag(db_path: str, prompt: str, templates_path: str | None):
     
     Args:
         db_path: Path to the Qdrant vector database
-        prompt: Prompt identifier/version to pass to the RAG invoker
-        templates_path: Path to prompt templates to pass to the RAG invoker
+        template: Full prompt template string to pass to the RAG invoker
     """
     slm = setup_slm()
 
@@ -77,8 +76,7 @@ def run_rag(db_path: str, prompt: str, templates_path: str | None):
             retrieved_docs,
             query,
             SLM_MODEL_NAME,
-            prompt,
-            templates_path,
+            template,
         )
 
 
@@ -96,113 +94,53 @@ def run_rag(db_path: str, prompt: str, templates_path: str | None):
 # -------------------- ENTRY POINT --------------------
 def main():
     """
-    Parse configuration (CLI + optional JSON config file) and start the RAG loop.
-
-    Precedence for configuration is:
-        1. CLI flags
-        2. JSON config file (if provided via --config)
+    Parse configuration from a JSON config file and start the RAG loop.
     """
 
-    # Argument parser for CLI usage
     parser = argparse.ArgumentParser(
-        description="Run Legalos RAG system"
+        description="Run Legalos RAG system (config-only)"
     )
-
-    # Optional JSON config file with keys:
-    #   - vectordbpath
-    #   - prompt
-    #   - templatespath
     parser.add_argument(
         "--config",
+        required=True,
         type=str,
-        help="Path to JSON config file with run parameters",
-    )
-
-    # Vector DB path (can also come from config)
-    parser.add_argument(
-        "--vectordbpath",
-        type=str,
-        help="Path to the Qdrant vector database",
-    )
-
-    # Prompt version / identifier (e.g. v1, v2)
-    parser.add_argument(
-        "--prompt",
-        type=str,
-        help="Prompt version to use (e.g. v1, v2)",
-    )
-
-    # Path to prompt templates JSON (can also come from config)
-    parser.add_argument(
-        "--templatespath",
-        type=str,
-        help="Path to prompt templates JSON",
+        help="Path to JSON config file with vectordbpath and template",
     )
 
     args = parser.parse_args()
 
-    # -------------------- LOAD CONFIG --------------------
-    # If a config file is provided, load it as a simple JSON dict.
-    config: dict = {}
-    if args.config:
-        config_path = os.path.abspath(args.config)
-        if not os.path.isfile(config_path):
-            raise ValueError(f"Config file does not exist: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
+    config_path = os.path.abspath(args.config)
 
-    # -------------------- MERGE (CLI > CONFIG ) --------------------
-    # Resolve each setting in order of precedence:
-    #   CLI flag > config file value
-    vectordbpath = (
-        args.vectordbpath
-        or config.get("vectordbpath")
-    )
+    if not os.path.isfile(config_path):
+        raise ValueError(f"Config file does not exist: {config_path}")
 
-    prompt = (
-        args.prompt
-        or config.get("prompt")
-    )
+    with open(config_path, "r", encoding="utf-8") as f:
+        config: dict = json.load(f)
 
-    templatespath = (
-        args.templatespath
-        or config.get("templatespath")
-    )
+    # Required keys in the config:
+    #   - vectordbpath: path to the Qdrant vector database
+    #   - template: full prompt template string
+    vectordbpath = config.get("vectordbpath")
+    template = config.get("template")
 
-    # Basic validation of required values
     if not vectordbpath:
-        raise ValueError(
-            "vectordbpath must be provided via CLI or config"
-        )
+        raise ValueError("Config must provide 'vectordbpath'")
 
-    if not prompt:
-        raise ValueError(
-            "prompt must be provided via CLI or config"
-        )
+    if not template:
+        raise ValueError("Config must provide 'template'")
 
-    if not templatespath:
-        raise ValueError(
-            "templatespath must be provided via CLI or config"
-        )
-
-    # Normalize paths to absolute
+    # Normalize vector DB path to absolute
     db_path = os.path.abspath(vectordbpath)
-    templates_path = os.path.abspath(templatespath)
 
     # Check that the vector DB path is a directory
     if not os.path.isdir(db_path):
         raise ValueError(f"Vector DB path does not exist: {db_path}")
 
-    # Check that the templates path points to a file
-    if not os.path.isfile(templates_path):
-        raise ValueError(f"Templates file does not exist: {templates_path}")
-
     # -------------------- RUN --------------------
     # Kick off the interactive RAG loop with resolved configuration.
     run_rag(
         db_path=db_path,
-        prompt=prompt,
-        templates_path=templates_path
+        template=template,
     )
 
 

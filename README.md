@@ -22,8 +22,8 @@
 │       │   └── ...
 │       └── failed_pdfs.txt
 │
-├── rag_config.json      # RAG config (vectordbpath, prompt, templatespath)
-├── ragPrompts.json      # Prompt templates JSON (versioned prompts like v1, v2, etc.)
+├── config/              # RAG configs (one JSON per prompt setup)
+│   └── rag_v1.json      # Config with vectordbpath + template
 │
 ├── chatbot
 │   ├── README.md
@@ -55,7 +55,7 @@ Before running **Legalos**, make sure you have:
 > **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g.:
 >
 > ```bash
-> python -m chatbot.main --config ./rag_config.json
+> python -m chatbot.main --config ./config/rag_v1.json
 > ```
 
 ---

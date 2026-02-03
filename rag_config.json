@@ -1,5 +1,0 @@
-{
-  "vectordbpath": "./vectorDB",
-  "prompt": "v1",
-  "templatespath": "./ragPrompts.json"
-}

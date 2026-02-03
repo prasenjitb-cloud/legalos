@@ -115,30 +115,21 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-The RAG CLI reads its settings either from a **JSON config file** or from **CLI flags**.
-Recommended usage is to keep everything in a config and pass that to `main`.
+The RAG CLI now reads **only a single JSON config file**, passed as the sole CLI argument.
 
-**Recommended config file (from `legalos/`):**
+**Config directory (from `legalos/`):**
 
 ```text
-rag_config.json
-  ├─ vectordbpath   : \"./vectorDB\"
-  ├─ prompt         : \"v1\"
-  └─ templatespath  : \"./ragPrompts.json\"   # or any other prompt JSON
+config/
+  └─ rag_v1.json
+       ├─ vectordbpath : \"./vectorDB\"
+       └─ template     : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
 ```
 
 **Run from the project root (`legalos/`):**
 
 ```bash
-python -m chatbot.main --config ./rag_config.json
-```
-
-You can still override values via CLI, for example:
-
-```bash
-python -m chatbot.main \
-  --config ./rag_config.json \
-  --prompt v2
+python -m chatbot.main --config ./config/rag_v1.json
 ```
 
 ---

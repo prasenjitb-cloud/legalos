@@ -28,7 +28,7 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 ### `prompt/prompts.py`
 
 - Builds the **RAG prompt skeleton**:
-  - Loads a versioned template from a JSON file (e.g. `ragPrompts.json`) using a **prompt version key** (like `"v1"`).
+  - Takes a full prompt template string (loaded from a JSON config file).
   - Injects `format_instructions` from the output parser.
   - Returns a LangChain `PromptTemplate` with:
     - `input_variables=["facts", "question"]`
@@ -57,10 +57,13 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 
 `chatbot/main.py` is orchestration-only:
 
-1. Parse config/CLI (`vectordbpath`, `prompt` version like `"v1"`, and `templatespath` to `ragPrompts.json`).
-2. Initialize the SLM (Ollama, `qwen2.5:3b-instruct`).
-3. Call **`factsRetriever.getFacts(db_path, query)`** to fetch relevant chunks from the vector DB.
-4. Call **`ragInvoker.invoker(slm, retrieved_docs, query, model_name, prompt, templates_path)`** to build the prompt, invoke the SLM, and get a structured `LegalAnswer`.
+1. Read a JSON config file (path passed as the only CLI argument).
+2. From that config, load:
+   - `vectordbpath` — path to the Qdrant vector DB.
+   - `template` — full RAG prompt template string.
+3. Initialize the SLM (Ollama, `qwen2.5:3b-instruct`).
+4. Call **`factsRetriever.getFacts(db_path, query)`** to fetch relevant chunks from the vector DB.
+5. Call **`ragInvoker.invoker(slm, retrieved_docs, query, model_name, template)`** to build the prompt, invoke the SLM, and get a structured `LegalAnswer`.
 
 Example:
 
@@ -71,13 +74,12 @@ result = chatbot.legalos_rag.ragInvoker.invoker(
     retrieved_docs,
     query,
     SLM_MODEL_NAME,
-    prompt,          # e.g. "v1"
-    templates_path,  # e.g. "./ragPrompts.json"
+    template,   # template string loaded from the config file
 )
 ```
 
 This keeps retrieval and model invocation separate so you can swap:
-- prompt versions (via `prompt` + `ragPrompts.json`)
+- config files (each with its own `template`)
 - models (via `SLM_MODEL_NAME`)
 without changing the retrieval logic.
 
@@ -87,21 +89,20 @@ without changing the retrieval logic.
 
 End-to-end prompt formation looks like this:
 
-1. **Config / CLI**
-   - `prompt`: version key, e.g. `"v1"`.
-   - `templatespath`: path to `ragPrompts.json`, which looks like:
+1. **Config file**
+   - Contains:
+     - `vectordbpath`: path to the Qdrant DB (e.g. `"./vectorDB"`).
+     - `template`: full prompt template string, e.g.:
 
    ```json
    {
-     "v1": {
-       "template": "You are a legal document reader...\\n\\nOutput:\\n{format_instructions}\\n\\nFacts:\\n{facts}\\n\\nQuery:\\n{question}"
-     }
+     "vectordbpath": "./vectorDB",
+     "template": "You are a legal document reader...\\n\\nOutput:\\n{format_instructions}\\n\\nFacts:\\n{facts}\\n\\nQuery:\\n{question}"
    }
    ```
 
 2. **`prompt/prompts.setup_rag_prompt_skeleton(...)`**
-   - Loads the JSON from `templatespath`.
-   - Picks `data[prompt]["template"]`.
+   - Takes the `template` string from the config.
    - Wraps it in a `PromptTemplate` with:
      - `{format_instructions}` filled from the output parser.
      - `{facts}` and `{question}` as runtime inputs.
@@ -117,18 +118,16 @@ End-to-end prompt formation looks like this:
 
 ```mermaid
 flowchart TD
-    A[Config/CLI: prompt='v1', templatespath='./ragPrompts.json'] --> B[ragInvoker.invoker]
+    A[Config file: vectordbpath + template] --> B[ragInvoker.invoker]
     B --> C[Create PydanticOutputParser with LegalAnswer schema]
     C --> D[prompt/prompts.setup_rag_prompt_skeleton]
-    D --> E[Load ragPrompts.json]
-    E --> F[Select data['v1']['template']]
-    F --> G[Create PromptTemplate with format_instructions]
-    G --> H[prompt.format with facts + question]
-    H --> I[Final prompt string]
-    I --> J[Invoke SLM]
-    J --> K[Parse JSON output to LegalAnswer]
-    K --> L[Log to rag_runs.jsonl]
-    L --> M[Return LegalAnswer]
+    D --> E[Create PromptTemplate from template string]
+    E --> F[prompt.format with facts + question]
+    F --> G[Final prompt string]
+    G --> H[Invoke SLM]
+    H --> I[Parse JSON output to LegalAnswer]
+    I --> J[Log to rag_runs.jsonl]
+    J --> K[Return LegalAnswer]
 ```
 
 ---
