@@ -4,54 +4,6 @@ import langchain_core.documents
 import chatbot.legalos_rag.prompt.promptSchema 
 import chatbot.legalos_rag.prompt.prompts
 
-import json
-import datetime
-import pathlib
-
-LOG_FILE = pathlib.Path("rag_runs.jsonl")
-
-# -------------------- LOG FILE --------------------
-
-def log_rag_run(
-    query: str,
-    final_prompt: str,
-    output: str,
-    model: str,
-):
-    """Append one RAG run (query, prompt, output, model) as a JSON line to the log file.
-    
-    Args:
-        query: Query string
-        final_prompt: Final prompt text
-        output: Output JSON string
-        model: Model name
-    """
-
-    log_entry = {
-        "timestamp": datetime.datetime.utcnow().isoformat(),
-        "model": model,
-        "query": query,
-        "final_prompt": final_prompt,
-        "output": output,
-    }
-
-    with LOG_FILE.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
-
-
-def safe_json(obj):
-    """Return a JSON-serializable copy of obj, or its string form if serialization fails.
-    
-    Args:
-        obj: Object to convert to JSON
-    
-    Returns:
-        str: JSON string of obj
-    """
-    try:
-        return json.loads(json.dumps(obj))
-    except Exception:
-        return str(obj)
 
 
 
@@ -59,7 +11,6 @@ def invoker(
         slm,
         retrieved_docs: list[langchain_core.documents.Document],
         query: str,
-        model: str,
         template: str,
 ):
     """Run the RAG pipeline: format prompt with docs and query, invoke the SLM, parse to LegalAnswer, and log the run.
@@ -104,16 +55,8 @@ def invoker(
     # Parse into schema
     parsed_result = parser.parse(raw_text)
 
-    # Log everything you want
 
-    log_rag_run(
-        query=query,
-        final_prompt=final_prompt_text,
-        output=safe_json(parsed_result.model_dump()),
-        model= model
-    )
-
-    return parsed_result
+    return parsed_result, final_prompt_text
 
 
 

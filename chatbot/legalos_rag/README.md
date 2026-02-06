@@ -11,6 +11,7 @@ legalos_rag/
 ├── README.md
 ├── __init__.py
 ├── factsRetriever.py 
+├── logger.py 
 ├── ragInvoker.py     
 └── prompt/
     ├── promptSchema.py    
@@ -44,12 +45,17 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 
 - **invoker** — Glue function that:
   - Builds the output parser for `LegalAnswer` (from `prompt/promptSchema.py`).
-  - Calls `prompt/prompts.setup_rag_prompt_skeleton(parser, prompt_version, templates_path)` to get the `PromptTemplate`.
+  - Calls `prompt/prompts.setup_rag_prompt_skeleton(parser, template)` to get the `PromptTemplate`.
   - Renders the final prompt text by formatting with:
     - `facts` (retrieved docs)
     - `question` (user query)
-  - Invokes the SLM, parses the JSON-like output into `LegalAnswer`, logs the run, and returns the result.
-- **log_rag_run** — Append one RAG run (query, final prompt text, parsed output, model) as a JSONL line to `rag_runs.jsonl`.
+  - Invokes the SLM and parses the JSON-like output into `LegalAnswer`.
+  - Returns a tuple `(parsed_result: LegalAnswer, final_prompt_text: str)`. It does **not** perform any logging.
+
+### `logger.py`
+
+- **safe_json** — Helper that serializes Python objects to JSON strings with `ensure_ascii=False`.
+- **log_rag_run** — Append one RAG run (timestamp, query, final prompt text, parsed output, model) as a JSONL line to `rag_runs.jsonl`. Called from `chatbot/main.py` after `invoker` returns.
 
 ---
 
@@ -63,18 +69,26 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
    - `template` — full RAG prompt template string.
 3. Initialize the SLM (Ollama, `qwen2.5:3b-instruct`).
 4. Call **`factsRetriever.getFacts(db_path, query)`** to fetch relevant chunks from the vector DB.
-5. Call **`ragInvoker.invoker(slm, retrieved_docs, query, model_name, template)`** to build the prompt, invoke the SLM, and get a structured `LegalAnswer`.
+5. Call **`ragInvoker.invoker(slm, retrieved_docs, query, template)`** to build the prompt, invoke the SLM, and get a structured `LegalAnswer` plus the final prompt text.
+6. Call **`logger.log_rag_run(...)`** to log the query, final prompt, parsed output, and model to `rag_runs.jsonl`.
 
 Example:
 
 ```python
 retrieved_docs = chatbot.legalos_rag.factsRetriever.getFacts(q=query, db_path=db_path)
-result = chatbot.legalos_rag.ragInvoker.invoker(
+result, final_prompt = chatbot.legalos_rag.ragInvoker.invoker(
     slm,
     retrieved_docs,
     query,
-    SLM_MODEL_NAME,
     template,   # template string loaded from the config file
+)
+
+chatbot.legalos_rag.logger.log_rag_run(
+    query=query,
+    final_prompt=final_prompt,
+    output=result,
+    model=SLM_MODEL_NAME,
+    log_file=LOG_FILE,
 )
 ```
 
@@ -108,11 +122,10 @@ End-to-end prompt formation looks like this:
      - `{facts}` and `{question}` as runtime inputs.
 
 3. **`ragInvoker.invoker(...)`**
-   - Calls `prompt.format(facts=retrieved_docs, question=query)` to produce the final string sent to the SLM.
+   - Calls `prompt.format(facts=retrieved_docs, question=query)` to produce the final string sent to the SLM, invokes the SLM, and parses the response into `LegalAnswer`.
 
-4. **SLM output → schema + logging**
-   - SLM output is parsed into `LegalAnswer`.
-   - The full prompt, query, model, and parsed output are logged to `rag_runs.jsonl`.
+4. **Logging via `logger.log_rag_run(...)`**
+   - `chatbot/main.py` calls `logger.log_rag_run` with the query, final prompt text, parsed output, and model to append a JSON line to `rag_runs.jsonl`.
 
 ### Prompt workflow diagram
 
@@ -134,4 +147,4 @@ flowchart TD
 
 ## Logging (`rag_runs.jsonl`)
 
-Each RAG run is appended as one JSON line: timestamp, model, query, final_prompt, and parsed output. Used for prompt-engineering iteration and review without re-running experiments.
+Each RAG run is appended as one JSON line: timestamp, model, query, final_prompt, and parsed output, via `chatbot.legalos_rag.logger.log_rag_run` in `chatbot/main.py`. Used for prompt-engineering iteration and review without re-running experiments.

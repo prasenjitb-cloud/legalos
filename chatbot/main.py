@@ -6,15 +6,16 @@ import json
 import argparse
 
 import langchain_ollama
-
+import pathlib
 import chatbot.legalos_rag.factsRetriever 
 import chatbot.legalos_rag.ragInvoker 
+import chatbot.legalos_rag.logger
 
 # -------------------- GLOBAL VARIABLES --------------------
 
 SLM_MODEL_NAME = "qwen2.5:3b-instruct"
 FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
-
+LOG_FILE = pathlib.Path("chatbot/rag_runs.jsonl")
 
 # -------------------- SLM SETUP --------------------
 
@@ -71,13 +72,21 @@ def run_rag(db_path: str, template: str):
             continue
 
         # Generate RAG answer using local module legalos_rag.ragInvoker
-        result= chatbot.legalos_rag.ragInvoker.invoker(
+        [result, final_prompt]= chatbot.legalos_rag.ragInvoker.invoker(
             slm,
             retrieved_docs,
             query,
-            SLM_MODEL_NAME,
             template,
         )
+
+        chatbot.legalos_rag.logger.log_rag_run(
+            query=query,
+            final_prompt=final_prompt,
+            output=result.model_dump(),
+            model=SLM_MODEL_NAME,
+            log_file=LOG_FILE,
+        )
+
 
 
 

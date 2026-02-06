@@ -1,5 +1,5 @@
 .env
 /vectorDB/*
 /factsDB/centralActPdfs/*
-/rag_runs.jsonl
+/chatbot/rag_runs.jsonl
 __pycache__/
