@@ -148,8 +148,8 @@ def main():
     if not vectordbpath:
         raise ValueError("Config must provide 'vectordbpath'")
 
-    if not template:
-        raise ValueError("Config must provide 'template'")
+    if not isinstance(template, str) or not template.strip():
+        raise ValueError("'template' must be a non-empty string")
 
     if not model_name:
         raise ValueError("Config must provide 'model.model_name'")
