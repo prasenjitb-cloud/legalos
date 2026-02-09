@@ -23,7 +23,7 @@
 │       └── failed_pdfs.txt
 │
 ├── config/              # RAG configs (one JSON per prompt setup)
-│   └── rag_v1.json      # Config with vectordbpath + template
+│   └── rag_v1.json      # Config: vectordbpath, template, logfile, exclude_model_name, exclude_prompt
 │
 ├── chatbot
 │   ├── README.md

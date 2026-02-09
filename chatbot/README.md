@@ -12,6 +12,7 @@ chatbot/
     ├── README.md
     ├── __init__.py  
     ├── factsRetriever.py 
+    ├── logger.py 
     ├── ragInvoker.py
     └── prompt
         ├── prompts.py
@@ -122,8 +123,11 @@ The RAG CLI now reads **only a single JSON config file**, passed as the sole CLI
 ```text
 config/
   └─ rag_v1.json
-       ├─ vectordbpath : \"./vectorDB\"
-       └─ template     : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
+       ├─ vectordbpath       : \"./vectorDB\"
+       ├─ template           : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
+       ├─ logfile            : \"chatbot/rag_runs.jsonl\"
+       ├─ exclude_model_name : false
+       └─ exclude_prompt     : true
 ```
 
 **Run from the project root (`legalos/`):**

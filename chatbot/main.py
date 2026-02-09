@@ -15,7 +15,6 @@ import chatbot.legalos_rag.logger
 
 SLM_MODEL_NAME = "qwen2.5:3b-instruct"
 FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
-LOG_FILE = pathlib.Path("chatbot/rag_runs.jsonl")
 
 # -------------------- SLM SETUP --------------------
 
@@ -37,7 +36,7 @@ def setup_slm():
 
 # -------------------- MAIN RAG LOOP --------------------
 
-def run_rag(db_path: str, template: str):
+def run_rag(db_path: str, template: str, logfile: str, exclude_model_name: bool, exclude_prompt: bool):
     """
     Run the interactive RAG system for legal question answering.
     
@@ -84,7 +83,9 @@ def run_rag(db_path: str, template: str):
             final_prompt=final_prompt,
             output=result.model_dump(),
             model=SLM_MODEL_NAME,
-            log_file=LOG_FILE,
+            log_file=logfile,
+            exclude_model_name=exclude_model_name,
+            exclude_prompt=exclude_prompt,
         )
 
 
@@ -129,14 +130,28 @@ def main():
     # Required keys in the config:
     #   - vectordbpath: path to the Qdrant vector database
     #   - template: full prompt template string
+    #   - logfile: path to the log file
+    #   - exclude_model_name: boolean to exclude the model name from the log file
+    #   - exclude_prompt: boolean to exclude the prompt from the log file
     vectordbpath = config.get("vectordbpath")
     template = config.get("template")
-
+    logfile = pathlib.Path(config.get("logfile")).resolve()
+    exclude_model_name = config.get("exclude_model_name")
+    exclude_prompt = config.get("exclude_prompt")
     if not vectordbpath:
         raise ValueError("Config must provide 'vectordbpath'")
 
     if not template:
         raise ValueError("Config must provide 'template'")
+
+    if not logfile:
+        raise ValueError("Config must provide 'logfile'")
+
+    if exclude_model_name is None:
+        raise ValueError("Config must provide 'exclude_model_name'")
+
+    if exclude_prompt is None:
+        raise ValueError("Config must provide 'exclude_prompt'")
 
     # Normalize vector DB path to absolute
     db_path = os.path.abspath(vectordbpath)
@@ -144,12 +159,17 @@ def main():
     # Check that the vector DB path is a directory
     if not os.path.isdir(db_path):
         raise ValueError(f"Vector DB path does not exist: {db_path}")
+    if not os.path.isfile(logfile):
+        raise ValueError(f"Log file does not exist: {logfile}")
 
     # -------------------- RUN --------------------
     # Kick off the interactive RAG loop with resolved configuration.
     run_rag(
         db_path=db_path,
         template=template,
+        logfile=logfile,
+        exclude_model_name=exclude_model_name,
+        exclude_prompt=exclude_prompt,
     )
 
 

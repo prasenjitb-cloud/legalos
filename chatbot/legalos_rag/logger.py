@@ -3,7 +3,7 @@ import datetime
 import pathlib
 
 
-def safe_json(obj):
+def _safe_json(obj):
     return json.dumps(obj, ensure_ascii=False)
 
 # -------------------- LOG FILE --------------------
@@ -12,8 +12,10 @@ def log_rag_run(
     query: str,
     final_prompt: str,
     output: dict,
-    model: str,
+    model: str, 
     log_file: pathlib.Path,
+    exclude_model_name: bool,
+    exclude_prompt: bool,
 ):
 
 
@@ -30,12 +32,12 @@ def log_rag_run(
 
     log_entry = {
         "timestamp": datetime.datetime.utcnow().isoformat(),
-        "model": model,
+        "model": model if not exclude_model_name else None,
         "query": query,
-        "final_prompt": final_prompt,
+        "final_prompt": final_prompt if not exclude_prompt else None,
         "output": output,
     }
 
     with log_file.open("a", encoding="utf-8") as f:
-        f.write(safe_json(log_entry) + "\n")
+        f.write(_safe_json(log_entry) + "\n")
 
