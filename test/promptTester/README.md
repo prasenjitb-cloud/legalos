@@ -7,7 +7,7 @@ Batch-run a **prompt template** over a **question set** using the LegalOS RAG pi
 For each question in the question set, promptTester:
 
 1. **Retrieves** relevant chunks from the vector DB (`getFacts`).
-2. **Runs the RAG pipeline** with your template: the template is filled with `{format_instructions}`, `{facts}`, and `{question}`, sent to the SLM, and the response is parsed into a structured `LegalAnswer` (answer_found, explanation, citations, etc.).
+2. **Runs the RAG pipeline** with your template sent to the SLM, and the response is parsed into a structured `LegalAnswer` (answer_found, explanation, citations, etc.).
 3. **If nothing was retrieved**, it still records a result with `answer_found=False` and empty explanation/citations.
 4. **Appends** that result to an in-memory run log.
 
@@ -22,7 +22,7 @@ So: **one config → one prompt template + one question set → one run file** c
 
 Each run file contains:
 
-- **Run metadata:** `run_id`, `model`, `vectordbpath`, `questionsetfile`, `template`.
+- **Run metadata:** `run_id`, `model`, `vectordbpath`, `questionsetfile`, `promptTemplate`.
 - **results:** list of one object per question with:
   - `question_id`, `question`
   - `retrieved_docs` (chunks used for that question)
@@ -32,15 +32,15 @@ You can use this file for evaluation (e.g. with `evaluatePrompt`) or manual insp
 
 ## Config file
 
-A JSON config file must provide:
+The batch runner uses the same config validation as the interactive RAG CLI via **`chatbot.legalos_rag.ensure_requirements(config)`**, plus a required question set path. A JSON config file must provide:
 
 | Key | Description |
 |-----|-------------|
 | `vectordbpath` | Path to the Qdrant vector DB directory (e.g. `./vectorDB`). |
-| `template` | Full prompt template string. Must include placeholders for `{format_instructions}`, `{facts}`, and `{question}` (used by the RAG prompt builder). |
+| `promptTemplate` | Object with a `"text"` key: the full prompt template string. Must include placeholders `{format_instructions}`, `{facts}`, and `{question}` (used by the RAG prompt builder). |
 | `questionsetfile` | Path to the question set JSON file (relative to the directory you run the script from, or absolute). |
 
-Paths in the config are resolved with `os.path.abspath()` from the current working directory.
+Paths in the config are resolved with `os.path.abspath()` from the current working directory. Retrieval and invocation use **`chatbot.legalos_rag.runRag.getFacts`** and **`chatbot.legalos_rag.runRag.invoker`**.
 
 ## Question set format
 
@@ -53,8 +53,8 @@ Example:
 
 ```json
 [
-  { "id": 1, "law": "POSH", "question": "My boss keeps sending me personal messages..." },
-  { "id": 2, "law": "HMA", "question": "My husband has abandoned me. Can I remarry?" }
+  { "id": 1, "section": "POSH", "question": "My boss keeps sending me personal messages..." },
+  { "id": 2, "section": "HMA", "question": "My husband has abandoned me. Can I remarry?" }
 ]
 ```
 
@@ -65,7 +65,7 @@ Entries with an empty `question` are skipped (no result is written for them).
 From the **legalos** project root:
 
 ```bash
-python -m promptTester.promptRunBatch --config promptTester/config/v1.json
+python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json
 ```
 
 Use a different config file to change the vector DB, template, or question set.

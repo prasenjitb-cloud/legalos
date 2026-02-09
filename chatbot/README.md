@@ -9,11 +9,8 @@ chatbot/
 ├── main.py
 ├── vectorDbSetup.py
 └── legalos_rag/
-    ├── README.md
     ├── __init__.py  
-    ├── factsRetriever.py 
-    ├── logger.py 
-    ├── ragInvoker.py
+    ├── runRag.py
     └── prompt
         ├── prompts.py
         └── promptSchema.py
@@ -116,15 +113,15 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-The RAG CLI now reads **only a single JSON config file**, passed as the sole CLI argument.
+The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, and SLM. The interactive loop uses **`chatbot.legalos_rag.runRag.getFacts`**, **`chatbot.legalos_rag.runRag.invoker`**, and **`chatbot.legalos_rag.runRag.log_rag_run`**.
 
-**Config directory (from `legalos/`):**
+**Config (from `legalos/`):**
 
 ```text
 config/
   └─ rag_v1.json
        ├─ vectordbpath       : \"./vectorDB\"
-       ├─ template           : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
+       ├─ promptTemplate     : { \"text\": \"You are a legal document reader...{format_instructions}...{facts}...{question}\" }
        ├─ model.model_name   : \"qwen2.5:3b-instruct\"
        └─ logging
             ├─ logfile            : \"chatbot/rag_runs.jsonl\"

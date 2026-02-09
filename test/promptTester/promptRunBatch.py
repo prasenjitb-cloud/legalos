@@ -2,31 +2,13 @@ import argparse
 import os
 import json
 import datetime
-import langchain_ollama
-
-import chatbot.legalos_rag.factsRetriever
-import chatbot.legalos_rag.ragInvoker
+import pathlib
+import chatbot.legalos_rag.runRag
 import chatbot.legalos_rag.prompt.promptSchema
+import chatbot.legalos_rag
 
-# -------------------- GLOBAL VARIABLES --------------------
-
-SLM_MODEL_NAME = "qwen2.5:3b-instruct"
-OUTPUTS_DIR = "/test/promptTester/outputs"
-
-# -------------------- LLM SETUP --------------------
-
-def setup_llm():
-    """Create and return the ChatOllama LLM instance used for RAG (model and temperature from module constants).
-    Returns:
-        langchain_ollama.ChatOllama: The ChatOllama LLM instance.
-    """
-    return langchain_ollama.ChatOllama(
-        model= SLM_MODEL_NAME,
-        temperature=0.2,
-    )
-
-# -------------------- QUESTIONS LOADING --------------------
-def load_questions(path):
+# -------------------- LOAD QUESTIONS --------------------
+def _load_questions(path):
     """Load the question set from a JSON file. Expects a list of objects with at least 'id' and 'question' keys.
     Args:
         path: The path to the JSON file containing the question set.
@@ -37,43 +19,43 @@ def load_questions(path):
         return json.load(f)
 
 
-
-def _write_run_outputs_dir():
+# -------------------- WRITE RUN OUTPUTS DIRECTORY --------------------
+def _write_run_outputs_dir(outputpath):
     """Ensure the outputs directory exists and return its absolute path.
     Returns:
         str: The absolute path to the outputs directory.
     """
-    os.makedirs(OUTPUTS_DIR, exist_ok=True)
-    return os.path.abspath(OUTPUTS_DIR)
+    os.makedirs(outputpath, exist_ok=True)
+    return pathlib.Path(outputpath).resolve()
 
 
 # -------------------- PROMPT RUN BATCH --------------------
-def prompt_run_batch(db_path: str, template: str, questionsetfile: str):
+def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, slm, model_name, outputpath):
     """
     Run the RAG pipeline for every question in the question set and write one run file.
 
     For each question: retrieve docs from the vector DB at db_path, then either call the
-    RAG invoker (template + docs + question -> LegalAnswer) or set answer_found=False
+    RAG invoker (promptTemplate + docs + question -> LegalAnswer) or set answer_found=False
     when no docs are retrieved. All results are collected into a single run log and
     written to outputs/run_<run_id>.json.
     Args:
         db_path: The path to the vector DB.
-        template: The template to use for the RAG pipeline.
+        promptTemplate: The prompt template to use for the RAG pipeline.
         questionsetfile: The path to the JSON file containing the question set.
+        slm: The Small Language Model instance.
     """
-    slm = setup_llm()
-    outputs_path = _write_run_outputs_dir()
+    outputs_path = _write_run_outputs_dir(outputpath)
 
-    questions = load_questions(questionsetfile)
+    questions = _load_questions(questionsetfile)
 
     run_id = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d_%H%M%S")
 
     run_log = {
         "run_id": run_id,
-        "model": SLM_MODEL_NAME,
+        "model": model_name,
         "vectordbpath": db_path,
         "questionsetfile": questionsetfile,
-        "template": template,
+        "promptTemplate": promptTemplate,
         "results": []
     }
 
@@ -84,7 +66,7 @@ def prompt_run_batch(db_path: str, template: str, questionsetfile: str):
             print("Empty question. Skipping.")
             continue
 
-        retrieved_docs = chatbot.legalos_rag.factsRetriever.getFacts(
+        retrieved_docs = chatbot.legalos_rag.runRag.getFacts(
             q=question_text,
             db_path=db_path
         )
@@ -96,11 +78,11 @@ def prompt_run_batch(db_path: str, template: str, questionsetfile: str):
                 citations=[]
             )
         else:
-            [result, final_prompt]= chatbot.legalos_rag.ragInvoker.invoker(
+            [result, final_prompt]= chatbot.legalos_rag.runRag.invoker(
             slm,
             retrieved_docs,
             question_text,
-            template,
+            promptTemplate,
             )
 
         # Log this run to a new JSON file in outputs/
@@ -125,7 +107,7 @@ def prompt_run_batch(db_path: str, template: str, questionsetfile: str):
 
 
 def main():
-    """Parse CLI for --config, load and validate config (vectordbpath, template, questionsetfile), then run the batch.
+    """Parse CLI for --config, load and validate config (vectordbpath, promptTemplate, questionsetfile), then run the batch.
     """
     parser= argparse.ArgumentParser(
         description="Run a batch of prompts"
@@ -139,34 +121,28 @@ def main():
     
     args= parser.parse_args()
 
-    config_path= os.path.abspath(args.config)
+    config_path = pathlib.Path(args.config).resolve()
 
-    if not os.path.isfile(config_path):
+    if not config_path.is_file():
         raise ValueError(f"Config file does not exist: {config_path}")
 
-    with open(config_path, "r", encoding="utf-8") as f:
+    with config_path.open("r", encoding="utf-8") as f:
         config: dict = json.load(f)
 
-    vectordbpath = config.get("vectordbpath")
-    template = config.get("template")
+    db_path, promptTemplate, slm , model_name= chatbot.legalos_rag.ensure_requirements(config)
+
     questionsetfile = config.get("questionsetfile")
+    outputpath = config.get("outputpath")
+    if not outputpath:
+        raise ValueError("Config must provide 'outputpath'")
 
     if not questionsetfile:
         raise ValueError("Config must provide 'questionsetfile'")
-    if not vectordbpath:
-        raise ValueError("Config must provide 'vectordbpath'")
-    if not isinstance(template, str) or not template.strip():
-        raise ValueError("'template' must be a non-empty string")
 
-    db_path = os.path.abspath(vectordbpath)
-    questionsetfile = os.path.abspath(questionsetfile)
+    outputpath= pathlib.Path(outputpath).resolve()
+    questionsetfile = pathlib.Path(questionsetfile).resolve()
 
-    if not os.path.isdir(db_path):
-        raise ValueError(f"Vector DB path does not exist: {db_path}")
-    if not os.path.isfile(questionsetfile):
-        raise ValueError(f"Questionset file does not exist: {questionsetfile}")
-
-    prompt_run_batch(db_path=db_path, template=template, questionsetfile=questionsetfile)
+    prompt_run_batch(db_path=db_path, promptTemplate=promptTemplate["text"], questionsetfile=questionsetfile, slm=slm, model_name=model_name, outputpath=outputpath)
            
 
 

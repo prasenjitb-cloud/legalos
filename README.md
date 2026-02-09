@@ -23,7 +23,7 @@
 │       └── failed_pdfs.txt
 │
 ├── config/              # RAG configs (one JSON per prompt setup)
-│   └── rag_v1.json      # Config: vectordbpath, template, model.model_name, logging (logfile, exclude_*)
+│   └── rag_v1.json      # Config: vectordbpath, promptTemplate, model.model_name, logging (logfile, exclude_*)
 │
 ├── chatbot
 │   ├── README.md
@@ -32,13 +32,18 @@
 │   ├── vectorDbSetup.py
 │   └── legalos_rag
 │       ├── __init__.py
-│       ├── README.md
-│       ├── factsRetriever.py
-│       ├── logger.py
-│       ├── ragInvoker.py
-│       └── prompt
+│       ├── runRag.py
+│       └── prompt
 │           ├── prompts.py
 │           └── promptSchema.py
+│
+├── test/                  # Batch prompt testing
+│   └── promptTester
+│       ├── README.md
+│       ├── promptRunBatch.py
+│       ├── questionSet.json
+│       └── config
+│           └── v1.json
 │
 └── requirements.txt
 ```
@@ -58,6 +63,8 @@ Before running **Legalos**, make sure you have:
 > ```bash
 > python -m chatbot.main --config ./config/rag_v1.json
 > ```
+>
+> For **batch prompt testing** over a question set, see `test/promptTester/README.md` and run `python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json`.
 
 ---
 
