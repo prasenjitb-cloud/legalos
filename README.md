@@ -23,7 +23,7 @@
 │       └── failed_pdfs.txt
 │
 ├── config/              # RAG configs (one JSON per prompt setup)
-│   └── rag_v1.json      # Config with vectordbpath + template
+│   └── rag_v1.json      # Config: vectordbpath, template, model.model_name, logging (logfile, exclude_*)
 │
 ├── chatbot
 │   ├── README.md
@@ -34,6 +34,7 @@
 │       ├── __init__.py
 │       ├── README.md
 │       ├── factsRetriever.py
+│       ├── logger.py
 │       ├── ragInvoker.py
 │       └── prompt
 │           ├── prompts.py
