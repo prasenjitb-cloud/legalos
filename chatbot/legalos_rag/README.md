@@ -67,13 +67,12 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 2. From that config, load:
    - `vectordbpath` — path to the Qdrant vector DB.
    - `template` — full RAG prompt template string.
-   - `logfile` — path to the RAG run log file (JSONL).
-   - `exclude_model_name` — whether to omit the model name in log entries.
-   - `exclude_prompt` — whether to omit the final prompt text in log entries.
-3. Initialize the SLM (Ollama, `qwen2.5:3b-instruct`).
+   - `model.model_name` — Ollama model name for the SLM (e.g. `qwen2.5:3b-instruct`).
+   - `logging` — object with `logfile`, `exclude_model_name`, `exclude_prompt`.
+3. Initialize the SLM (Ollama) using `model.model_name` from the config.
 4. Call **`factsRetriever.getFacts(db_path, query)`** to fetch relevant chunks from the vector DB.
 5. Call **`ragInvoker.invoker(slm, retrieved_docs, query, template)`** to build the prompt, invoke the SLM, and get a structured `LegalAnswer` plus the final prompt text.
-6. Call **`logger.log_rag_run(...)`** to log the query, final prompt, parsed output, and model to the config’s `logfile` (with optional exclusions via `exclude_model_name` and `exclude_prompt`).
+6. Call **`logger.log_rag_run(...)`** to log the query, final prompt, parsed output, and model to the config’s `logging.logfile` (with optional exclusions via `logging.exclude_model_name` and `logging.exclude_prompt`).
 
 Example:
 
@@ -90,14 +89,14 @@ chatbot.legalos_rag.logger.log_rag_run(
     query=query,
     final_prompt=final_prompt,
     output=result,
-    model=SLM_MODEL_NAME,
-    log_file=LOG_FILE,
+    model=model_name,   # from config["model"]["model_name"]
+    log_file=logfile,   # from config["logging"]["logfile"]
 )
 ```
 
 This keeps retrieval and model invocation separate so you can swap:
-- config files (each with its own `template`)
-- models (via `SLM_MODEL_NAME`)
+- config files (each with its own `template` and `model.model_name`)
+- models (via `model.model_name` in the config)
 without changing the retrieval logic.
 
 ---
@@ -110,9 +109,8 @@ End-to-end prompt formation looks like this:
    - Contains:
      - `vectordbpath`: path to the Qdrant DB (e.g. `"./vectorDB"`).
      - `template`: full prompt template string.
-     - `logfile`: path to the RAG run log file (JSONL).
-     - `exclude_model_name`: boolean — omit model name in log entries.
-     - `exclude_prompt`: boolean — omit final prompt text in log entries.
+     - `model.model_name`: Ollama model name for the SLM (e.g. `"qwen2.5:3b-instruct"`).
+     - `logging`: object with `logfile`, `exclude_model_name`, `exclude_prompt`.
 
    Example:
 
@@ -120,9 +118,12 @@ End-to-end prompt formation looks like this:
    {
      "vectordbpath": "./vectorDB",
      "template": "You are a legal document reader...\\n\\nOutput:\\n{format_instructions}\\n\\nFacts:\\n{facts}\\n\\nQuery:\\n{question}",
-     "logfile": "chatbot/rag_runs.jsonl",
-     "exclude_model_name": false,
-     "exclude_prompt": true
+     "model": { "model_name": "qwen2.5:3b-instruct" },
+     "logging": {
+       "logfile": "chatbot/rag_runs.jsonl",
+       "exclude_model_name": false,
+       "exclude_prompt": true
+     }
    }
    ```
 
@@ -142,7 +143,7 @@ End-to-end prompt formation looks like this:
 
 ```mermaid
 flowchart TD
-    A[Config file: vectordbpath, template, logfile, exclude_*] --> B[ragInvoker.invoker]
+    A[Config file: vectordbpath, template, model.model_name, logging] --> B[ragInvoker.invoker]
     B --> C[Create PydanticOutputParser with LegalAnswer schema]
     C --> D[prompt/prompts.setup_rag_prompt_skeleton]
     D --> E[Create PromptTemplate from template string]
@@ -158,4 +159,4 @@ flowchart TD
 
 ## Logging
 
-The log file path is set in the config as `logfile` (e.g. `chatbot/rag_runs.jsonl`). Each RAG run is appended as one JSONL line: timestamp, model, query, final_prompt, and parsed output, via `chatbot.legalos_rag.logger.log_rag_run` in `chatbot/main.py`. Config keys `exclude_model_name` and `exclude_prompt` control whether the model name and/or final prompt text are omitted from each log entry. Used for prompt-engineering iteration and review without re-running experiments.
+The log file path is set in the config as `logging.logfile` (e.g. `chatbot/rag_runs.jsonl`). Each RAG run is appended as one JSONL line: timestamp, model, query, final_prompt, and parsed output, via `chatbot.legalos_rag.logger.log_rag_run` in `chatbot/main.py`. Config keys `logging.exclude_model_name` and `logging.exclude_prompt` control whether the model name and/or final prompt text are omitted from each log entry. Used for prompt-engineering iteration and review without re-running experiments.

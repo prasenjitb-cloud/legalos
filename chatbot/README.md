@@ -125,9 +125,11 @@ config/
   └─ rag_v1.json
        ├─ vectordbpath       : \"./vectorDB\"
        ├─ template           : \"You are a legal document reader...{format_instructions}...{facts}...{question}\"
-       ├─ logfile            : \"chatbot/rag_runs.jsonl\"
-       ├─ exclude_model_name : false
-       └─ exclude_prompt     : true
+       ├─ model.model_name   : \"qwen2.5:3b-instruct\"
+       └─ logging
+            ├─ logfile            : \"chatbot/rag_runs.jsonl\"
+            ├─ exclude_model_name : false
+            └─ exclude_prompt     : true
 ```
 
 **Run from the project root (`legalos/`):**
