@@ -17,7 +17,7 @@ So: **one config → one prompt template + one question set → one run file** c
 
 ## Outputs
 
-- **Directory:** `outputs/` (created under the current working directory).
+- **Directory:** Specified by `outputpath` in the config (e.g. `test/promptTester/outputs/`).
 - **File:** `run_<run_id>.json`, e.g. `run_20260207_115216.json`.
 
 Each run file contains:
@@ -38,7 +38,9 @@ The batch runner uses the same config validation as the interactive RAG CLI via 
 |-----|-------------|
 | `vectordbpath` | Path to the Qdrant vector DB directory (e.g. `./vectorDB`). |
 | `promptTemplate` | Object with a `"text"` key: the full prompt template string. Must include placeholders `{format_instructions}`, `{facts}`, and `{question}` (used by the RAG prompt builder). |
+| `model.model_name` | Ollama model name (e.g. `"qwen2.5:3b-instruct"`). |
 | `questionsetfile` | Path to the question set JSON file (relative to the directory you run the script from, or absolute). |
+| `outputpath` | Directory path where the run results JSON file will be saved. |
 
 Paths in the config are resolved with `os.path.abspath()` from the current working directory. Retrieval and invocation use **`chatbot.legalos_rag.runRag.getFacts`** and **`chatbot.legalos_rag.runRag.invoker`**.
 

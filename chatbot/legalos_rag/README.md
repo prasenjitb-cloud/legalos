@@ -21,10 +21,11 @@ legalos_rag/
 
 ### `__init__.py`
 
-- **setup_slm** — Build Ollama ChatOllama instance (`qwen2.5:3b-instruct`).
-- **ensure_requirements(config)** — Validate config and return `(db_path, promptTemplate, slm)`. Required config keys:
+- **_setup_slm(model_name)** — Build Ollama ChatOllama instance with the specified model name.
+- **ensure_requirements(config)** — Validate config and return `(db_path, promptTemplate, slm, model_name)`. Required config keys:
   - `vectordbpath` — path to the Qdrant vector DB.
   - `promptTemplate` — object with a `"text"` key holding the full prompt template string.
+  - `model.model_name` — Ollama model name (e.g. `"qwen2.5:3b-instruct"`).
 
 Used by both the interactive CLI (`chatbot.main`) and the batch runner (`test.promptTester.promptRunBatch`).
 
