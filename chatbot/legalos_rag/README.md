@@ -8,6 +8,7 @@
 
 ```text
 legalos_rag/
+├── README.md
 ├── __init__.py
 ├── runRag.py
 └── prompt/

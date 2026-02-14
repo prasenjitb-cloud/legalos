@@ -31,19 +31,12 @@
 │   ├── main.py
 │   ├── vectorDbSetup.py
 │   └── legalos_rag
-│       ├── __init__.py
+│       ├── README.md
+│       ├── __init__.py
 │       ├── runRag.py
 │       └── prompt
 │           ├── prompts.py
 │           └── promptSchema.py
-│
-├── test/                  # Batch prompt testing
-│   └── promptTester
-│       ├── README.md
-│       ├── promptRunBatch.py
-│       ├── questionSet.json
-│       └── config
-│           └── v1.json
 │
 └── requirements.txt
 ```
@@ -64,7 +57,6 @@ Before running **Legalos**, make sure you have:
 > python -m chatbot.main --config ./config/rag_v1.json
 > ```
 >
-> For **batch prompt testing** over a question set, see `test/promptTester/README.md` and run `python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json`.
 
 ---
 

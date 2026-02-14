@@ -9,6 +9,7 @@ chatbot/
 ├── main.py
 ├── vectorDbSetup.py
 └── legalos_rag/
+    ├── README.md
     ├── __init__.py  
     ├── runRag.py
     └── prompt
