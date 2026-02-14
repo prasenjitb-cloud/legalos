@@ -2,8 +2,6 @@ import langchain_ollama
 import os
 import pathlib
 
-SLM_MODEL_NAME = "qwen2.5:3b-instruct"
-
 
 # -------------------- SLM SETUP --------------------
 
@@ -48,13 +46,12 @@ def ensure_requirements(config: dict):
             "Add it to your JSON config file."
         )
 
-    # Normalize vector DB path to absolute
-    db_path = os.path.abspath(vectordbpath)
+    db_path = pathlib.Path(db_path)
 
 
-    if not os.path.isdir(db_path):
+    if not db_path.is_dir():
         raise ValueError(
-            f"Vector DB path is missing or not a directory: {db_path!r}. "
+            f"Vector DB path is missing or not a directory: {db_path}. "
             "Create the vector DB first (e.g. run vectorDbSetup) or fix the path in config."
         )
 
