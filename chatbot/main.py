@@ -1,6 +1,3 @@
-import dotenv 
-dotenv.load_dotenv()
-
 import os
 import json
 import argparse
@@ -35,6 +32,7 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
     while True:
         query = input("\nAsk a legal question (type 'exit' to quit): ").strip()
 
+        # Check for exit commands
         if query.lower() in {"exit", "quit", "q"}:
             print("Exiting.")
             break
@@ -43,7 +41,7 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             print("Empty question. Try again.")
             continue
 
-        # Retrieve relevant documents from vector database using local module legalos_rag.factsRetriever
+        # Retrieve top-k relevant document chunks from vector database
         retrieved_docs = chatbot.legalos_rag.runRag.getFacts(
             q=query,
             db_path=db_path
@@ -53,7 +51,7 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             print("\nAnswer:\n Not found in the documents")
             continue
 
-        # Generate RAG answer using local module legalos_rag.ragInvoker
+        # Generate structured answer using RAG pipeline (retrieve + generate + parse)
         [result, final_prompt]= chatbot.legalos_rag.runRag.invoker(
             slm,
             retrieved_docs,
@@ -61,6 +59,7 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             promptTemplate,
         )
 
+        # Log the query, prompt, and response to JSONL file
         chatbot.legalos_rag.runRag.log_rag_run(
             query=query,
             final_prompt=final_prompt,
@@ -71,10 +70,11 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             exclude_prompt=exclude_prompt,
         )
 
+        # Display results to user
         if not result.answer_found:
             print("Not found in the documents.")
         else:
-            print("SLM")
+            print("SLM Response:")
             print(result.explanation)
             for c in result.citations:
                 print(c.page, c.quote)
@@ -99,21 +99,26 @@ def main():
 
     args = parser.parse_args()
 
+    # Resolve config file path to absolute path
     config_path = pathlib.Path(args.config).resolve()
 
     if not config_path.is_file():
         raise ValueError(f"Config file does not exist: {config_path}")
 
+    # Load configuration from JSON file
     with config_path.open("r", encoding="utf-8") as f:
         config: dict = json.load(f)
 
+    # Validate config and initialize SLM (returns 4 values)
     db_path, promptTemplate, slm , model_name= chatbot.legalos_rag.ensure_requirements(config)
 
+    # Extract logging configuration
     logging_cfg = config.get("logging") or {}
     logfile_val = logging_cfg.get("logfile")
     exclude_model_name = logging_cfg.get("exclude_model_name")
     exclude_prompt = logging_cfg.get("exclude_prompt")
 
+    # Validate logging configuration
     if not logfile_val:
         raise ValueError("Config must provide 'logging.logfile'")
 
@@ -125,7 +130,7 @@ def main():
     if exclude_prompt is None:
         raise ValueError("Config must provide 'logging.exclude_prompt'")
 
-
+    # Ensure log file exists
     if not os.path.isfile(logfile):
         raise ValueError(f"Log file does not exist: {logfile}")
 

@@ -23,8 +23,6 @@ import langchain_huggingface
 
 COLLECTION_NAME = "central_acts"           # Qdrant collection name for central acts embeddings
 EMBEDDINGS_MODEL_NAME = "BAAI/bge-small-en"  # HuggingFace model for embedding queries and chunks
-SLM_MODEL_NAME = "qwen2.5:3b-instruct"     # Ollama model name (used by callers for logging)
-LOG_FILE = pathlib.Path("chatbot/rag_runs.jsonl")  # Default path for RAG run log (JSONL)
 
 # -------------------- VECTOR STORE SETUP --------------------
 
