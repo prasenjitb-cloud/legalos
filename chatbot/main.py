@@ -109,31 +109,8 @@ def main():
     with config_path.open("r", encoding="utf-8") as f:
         config: dict = json.load(f)
 
-    # Validate config and initialize SLM (returns 4 values)
-    db_path, promptTemplate, slm , model_name= chatbot.legalos_rag.ensure_requirements(config)
-
-    # Extract logging configuration
-    logging_cfg = config.get("logging") or {}
-    logfile_val = logging_cfg.get("logfile")
-    exclude_model_name = logging_cfg.get("exclude_model_name")
-    exclude_prompt = logging_cfg.get("exclude_prompt")
-
-    # Validate logging configuration
-    if not logfile_val:
-        raise ValueError("Config must provide 'logging.logfile'")
-
-    logfile = pathlib.Path(logfile_val).resolve()
-
-    if exclude_model_name is None:
-        raise ValueError("Config must provide 'logging.exclude_model_name'")
-
-    if exclude_prompt is None:
-        raise ValueError("Config must provide 'logging.exclude_prompt'")
-
-    # Ensure log file exists
-    if not os.path.isfile(logfile):
-        raise ValueError(f"Log file does not exist: {logfile}")
-
+    # Validate config and initialize SLM (returns 5 values)
+    db_path, promptTemplate, slm , model_name, logging= chatbot.legalos_rag.ensure_requirements(config)
 
     # -------------------- RUN --------------------
     # Kick off the interactive RAG loop with resolved configuration.
@@ -142,9 +119,9 @@ def main():
         promptTemplate=promptTemplate["text"],
         slm=slm,
         model_name=model_name,
-        logfile=logfile,
-        exclude_model_name=exclude_model_name,
-        exclude_prompt=exclude_prompt,
+        logfile=logging.logfile,
+        exclude_model_name=logging.exclude_model_name,
+        exclude_prompt=logging.exclude_prompt,
     )
 
 
