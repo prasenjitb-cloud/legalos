@@ -216,3 +216,37 @@ You now have:
 -   Persistent vector database backup\
 -   Clean separation of ingestion vs serving\
 -   Cost-aware infrastructure setup
+
+------------------------------------------------------------------------
+
+# 🚀 Live Demo
+
+## Deployment Status: ✅ Deployed
+
+The Legalos RAG system is now live on AWS EC2 with a web interface!
+
+### 🌐 Access URL
+**[http://3.6.205.42:5000/](http://3.6.205.42:5000/)**
+
+### 🧪 Try It Out
+
+**Sample Question:**\
+*"What is the objective of the Right to Information Act, 2005?"*
+
+### ⚠️ Performance Note
+Response time is longer due to:
+-   CPU-only inference (no GPU)\
+-   3B parameter model running on 2 vCPU\
+-   HuggingFace embeddings + Qdrant retrieval + LLM generation
+
+**Be patient** – it works! ⏳
+
+------------------------------------------------------------------------
+
+# 🎯 What's Running
+
+-   **Flask web server** (port 5000)\
+-   **Ollama SLM** (qwen2.5:3b-instruct)\
+-   **Qdrant vectorDB** (local file-based mode)\
+-   **HuggingFace embeddings** (CPU torch)\
+-   **Full RAG pipeline** with citation extraction
