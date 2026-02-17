@@ -52,6 +52,9 @@ Before running **Legalos**, make sure you have:
 - **Python 3.11**
   > Python 3.11 works best with LangChain. Newer versions may cause compatibility issues.
 - **pip** (or any Python package manager)
+- **Ollama** (for running local SLM)
+
+> **Note**: Legalos works fully offline with no external API dependencies or environment variables required.
 
 > **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g.:
 >
@@ -83,24 +86,11 @@ pip install -r requirements.txt
 
 ---
 
-## Environment Setup
+## AWS Deployment
 
-### Create a `.env` file
+Want to deploy Legalos on AWS EC2? Check out the complete deployment guide:
 
-```bash
-touch .env
-```
-
-### Add the following variables to `.env`
-
-> These are **optional** and used only for analytics/tracing.  
-> The system works fully offline without them.
-
-```env
-LANGSMITH_TRACING_V2=true
-LANGSMITH_API_KEY=your_langsmith_api_key_here
-LANGSMITH_PROJECT=LegalOs
-```
+📁 **[aws_deployment/README.md](./aws_deployment/README.md)** - Step-by-step AWS deployment guide with all terminal commands
 
 ---
 

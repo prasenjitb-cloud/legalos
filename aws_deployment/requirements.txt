@@ -1,0 +1,26 @@
+# ---- Force CPU Torch ----
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch
+
+# ---- Web API ----
+flask
+flask-cors
+
+# ---- Core LangChain ----
+langchain-core
+langchain-community
+langchain-huggingface
+
+# ---- Embeddings ----
+sentence-transformers
+
+# ---- Vector DB ----
+langchain-qdrant
+qdrant-client
+
+# ---- Ollama integration ----
+langchain-ollama
+
+# ---- Env support ----
+python-dotenv
