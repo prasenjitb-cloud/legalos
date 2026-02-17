@@ -214,14 +214,14 @@ cd /path/to/your/legalos
 ssh -i ~/.ssh/legalos-key.pem ubuntu@<YOUR_EC2_PUBLIC_IP> "mkdir -p ~/legalos"
 
 # Upload required files and folders
-scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB browserRun.py aws_deployment/requirements.txt ubuntu@<EC2_PUBLIC_IP>:~/legalos/
+scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB deployRun.py aws_deployment/requirements.txt ubuntu@<EC2_PUBLIC_IP>:~/legalos/
 
 ```
 **Files being uploaded:**
 - `chatbot/` - RAG system code
 - `config/` - Configuration files (rag_v1.json)
 - `vectorDB/` - Pre-created vector database (~350MB)
-- `browserRun.py` - Flask API server
+- `deployRun.py` - Flask API server
 - `aws_deployment/requirements.txt` - Python dependencies
 
 ---
@@ -315,7 +315,7 @@ This allows only your current IP address to access port 5000.
 
 ### Option A: Flask API (Recommended for Browser Access)
 
-Run the browserRun.py Flask API:
+Run the deployRun.py Flask API:
 
 ```bash
 # Make sure you're in the legalos directory with venv activated
@@ -323,7 +323,7 @@ cd ~/legalos
 source venv/bin/activate
 
 # Run the Flask API server
-python browserRun.py
+python deployRun.py
 ```
 
 **Access the API:**
@@ -391,7 +391,7 @@ screen -S legalos
 # Run your application
 cd ~/legalos
 source venv/bin/activate
-python browserRun.py
+python deployRun.py
 
 # Detach from screen: Press Ctrl+A, then D
 
@@ -595,7 +595,7 @@ ssh -i ~/.ssh/legalos-key.pem ubuntu@<EC2_IP>
 cd ~/legalos && source venv/bin/activate
 
 # Run Flask API
-python browserRun.py
+python deployRun.py
 
 # Run CLI (alternative)
 python -m chatbot.main --config config/rag_v1.json
@@ -613,7 +613,7 @@ sudo systemctl stop legalos
 
 # Update files from local (run from your legalos directory)
 rsync -avz -e "ssh -i ~/.ssh/legalos-key.pem" \
-  chatbot/ config/ vectorDB/ browserRun.py aws_deployment/requirements.txt \
+  chatbot/ config/ vectorDB/ deployRun.py aws_deployment/requirements.txt \
   ubuntu@<EC2_IP>:~/legalos/
 ```
 
