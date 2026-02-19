@@ -42,19 +42,19 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             continue
 
         # Retrieve top-k relevant document chunks from vector database
-        retrieved_docs = chatbot.legalos_rag.runRag.getFacts(
+        retrievedChunks = chatbot.legalos_rag.runRag.getFacts(
             q=query,
             db_path=db_path
         )
 
-        if not retrieved_docs:
+        if not retrievedChunks:
             print("\nAnswer:\n Not found in the documents")
             continue
 
         # Generate structured answer using RAG pipeline (retrieve + generate + parse)
         [result, final_prompt]= chatbot.legalos_rag.runRag.invoker(
             slm,
-            retrieved_docs,
+            retrievedChunks,
             query,
             promptTemplate,
         )

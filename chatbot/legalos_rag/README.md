@@ -48,7 +48,7 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 Central RAG logic:
 
 - **getFacts(q, db_path)** — Setup Qdrant vectorstore (HuggingFace embeddings), retrieve top-k chunks for the query, return them formatted as a single string for the prompt.
-- **invoker(slm, retrieved_docs, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and question, invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
+- **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and question, invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
 - **log_rag_run(query, final_prompt, output, model, log_file)** — Append one RAG run as a JSONL line to the given log file. Called from `chatbot/main.py` after each invoker call.
 
 ---
@@ -89,7 +89,7 @@ End-to-end prompt formation looks like this:
      - `{facts}` and `{question}` as runtime inputs.
 
 3. **`runRag.invoker(...)`**
-   - Calls `prompt.format(facts=retrieved_docs, question=query)` to produce the final string sent to the SLM, invokes the SLM, and parses the response into `LegalAnswer`.
+   - Calls `prompt.format(facts=retrievedChunks, question=query)` to produce the final string sent to the SLM, invokes the SLM, and parses the response into `LegalAnswer`.
 
 4. **Logging via `runRag.log_rag_run(...)`**
    - `chatbot/main.py` calls `runRag.log_rag_run` with the query, final prompt text, parsed output, and model to append a JSON line to `rag_runs.jsonl`.

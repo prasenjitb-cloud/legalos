@@ -103,7 +103,7 @@ def getFacts(q: str, db_path: str):
 
 def invoker(
     slm,
-    retrieved_docs,  # Formatted string from getFacts, or list[Document] (prompt.format accepts both)
+    retrievedChunks,  # Formatted string from getFacts, or list[Document] (prompt.format accepts both)
     query: str,
     template: str,
 ):
@@ -113,7 +113,7 @@ def invoker(
 
     Args:
         slm: Small Language Model instance (e.g. ChatOllama).
-        retrieved_docs: Formatted facts string (from getFacts) or list of Documents for {facts}.
+        retrievedChunks: Formatted facts string (from getFacts) or list of Documents for {facts}.
         query: User question string.
         template: Full prompt template with {format_instructions}, {facts}, {question}.
 
@@ -130,7 +130,7 @@ def invoker(
 
     # Build the final prompt string sent to the SLM (and optionally logged by the caller)
     final_prompt_text = prompt.format(
-        facts=retrieved_docs,
+        facts=retrievedChunks,
         question=query,
     )
     raw_response = slm.invoke(final_prompt_text)
