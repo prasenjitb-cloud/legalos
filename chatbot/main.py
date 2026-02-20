@@ -1,63 +1,38 @@
-import dotenv 
-dotenv.load_dotenv()
-
 import os
 import json
 import argparse
 
-import langchain_ollama
+import chatbot.legalos_rag.runRag
 import pathlib
-import chatbot.legalos_rag.factsRetriever 
-import chatbot.legalos_rag.ragInvoker 
-import chatbot.legalos_rag.logger
+import chatbot.legalos_rag
 
 # -------------------- GLOBAL VARIABLES --------------------
 
-FAILED_LOG_FILE= "failed_pdf_embeddings.txt"
 
-# -------------------- SLM SETUP --------------------
-
-def setup_slm(model_name: str):
-    """
-    Set up and return a SLM instance using Ollama.
-    
-    This function initializes a ChatOllama instance configured with the specified
-    SLM model and temperature setting. The SLM is used for generating responses
-    in the RAG system.
-    
-    Args:
-        model_name: Ollama model name (e.g. from config model.model_name).
-    
-    Returns:
-        langchain_ollama.ChatOllama: Configured SLM instance ready for use
-    """
-    return langchain_ollama.ChatOllama(
-        model=model_name,
-        temperature=1,
-    )
 
 # -------------------- MAIN RAG LOOP --------------------
 
-def run_rag(db_path: str, template: str, model_name: str, logfile: str, exclude_model_name: bool, exclude_prompt: bool):
+def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, exclude_model_name: bool, exclude_prompt: bool, slm):
     """
     Run the interactive RAG system for legal question answering.
     
-    Sets up the SLM and enters an interactive loop that retrieves relevant
+    Enters an interactive loop that retrieves relevant
     documents from the vector database and generates answers with citations.
     
     Args:
         db_path: Path to the Qdrant vector database
-        template: Full prompt template string to pass to the RAG invoker
+        promptTemplate: Full prompt template string to pass to the RAG invoker
         model_name: Ollama model name (from config model.model_name)
         logfile: Path to the RAG run log file
         exclude_model_name: Whether to omit model name in log entries
         exclude_prompt: Whether to omit prompt in log entries
+        slm: Small Language Model instance
     """
-    slm = setup_slm(model_name)
 
     while True:
         query = input("\nAsk a legal question (type 'exit' to quit): ").strip()
 
+        # Check for exit commands
         if query.lower() in {"exit", "quit", "q"}:
             print("Exiting.")
             break
@@ -66,25 +41,26 @@ def run_rag(db_path: str, template: str, model_name: str, logfile: str, exclude_
             print("Empty question. Try again.")
             continue
 
-        # Retrieve relevant documents from vector database using local module legalos_rag.factsRetriever
-        retrieved_docs = chatbot.legalos_rag.factsRetriever.getFacts(
+        # Retrieve top-k relevant document chunks from vector database
+        retrievedChunks = chatbot.legalos_rag.runRag.getFacts(
             q=query,
             db_path=db_path
         )
 
-        if not retrieved_docs:
+        if not retrievedChunks:
             print("\nAnswer:\n Not found in the documents")
             continue
 
-        # Generate RAG answer using local module legalos_rag.ragInvoker
-        [result, final_prompt]= chatbot.legalos_rag.ragInvoker.invoker(
+        # Generate structured answer using RAG pipeline (retrieve + generate + parse)
+        [result, final_prompt]= chatbot.legalos_rag.runRag.invoker(
             slm,
-            retrieved_docs,
+            retrievedChunks,
             query,
-            template,
+            promptTemplate,
         )
 
-        chatbot.legalos_rag.logger.log_rag_run(
+        # Log the query, prompt, and response to JSONL file
+        chatbot.legalos_rag.runRag.log_rag_run(
             query=query,
             final_prompt=final_prompt,
             output=result.model_dump(),
@@ -94,13 +70,11 @@ def run_rag(db_path: str, template: str, model_name: str, logfile: str, exclude_
             exclude_prompt=exclude_prompt,
         )
 
-
-
-
+        # Display results to user
         if not result.answer_found:
             print("Not found in the documents.")
         else:
-            print("SLM")
+            print("SLM Response:")
             print(result.explanation)
             for c in result.citations:
                 print(c.page, c.quote)
@@ -125,63 +99,29 @@ def main():
 
     args = parser.parse_args()
 
-    config_path = os.path.abspath(args.config)
+    # Resolve config file path to absolute path
+    config_path = pathlib.Path(args.config).resolve()
 
-    if not os.path.isfile(config_path):
+    if not config_path.is_file():
         raise ValueError(f"Config file does not exist: {config_path}")
 
-    with open(config_path, "r", encoding="utf-8") as f:
+    # Load configuration from JSON file
+    with config_path.open("r", encoding="utf-8") as f:
         config: dict = json.load(f)
 
-    # Required keys in the config:
-    #   - vectordbpath: path to the Qdrant vector database
-    #   - template: full prompt template string
-    #   - model.model_name: Ollama model name for the SLM
-    #   - logging: { logfile, exclude_model_name, exclude_prompt }
-    vectordbpath = config.get("vectordbpath")
-    template = config.get("template")
-    model_name = (config.get("model") or {}).get("model_name")
-    logging_cfg = config.get("logging") or {}
-    logfile_val = logging_cfg.get("logfile")
-    exclude_model_name = logging_cfg.get("exclude_model_name")
-    exclude_prompt = logging_cfg.get("exclude_prompt")
-    if not vectordbpath:
-        raise ValueError("Config must provide 'vectordbpath'")
-
-    if not template:
-        raise ValueError("Config must provide 'template'")
-
-    if not model_name:
-        raise ValueError("Config must provide 'model.model_name'")
-
-    if not logfile_val:
-        raise ValueError("Config must provide 'logging.logfile'")
-    logfile = pathlib.Path(logfile_val).resolve()
-
-    if exclude_model_name is None:
-        raise ValueError("Config must provide 'logging.exclude_model_name'")
-
-    if exclude_prompt is None:
-        raise ValueError("Config must provide 'logging.exclude_prompt'")
-
-    # Normalize vector DB path to absolute
-    db_path = os.path.abspath(vectordbpath)
-
-    # Check that the vector DB path is a directory
-    if not os.path.isdir(db_path):
-        raise ValueError(f"Vector DB path does not exist: {db_path}")
-    if not os.path.isfile(logfile):
-        raise ValueError(f"Log file does not exist: {logfile}")
+    # Validate config and initialize SLM (returns 5 values)
+    db_path, promptTemplate, slm , model_name, logging= chatbot.legalos_rag.ensure_requirements(config)
 
     # -------------------- RUN --------------------
     # Kick off the interactive RAG loop with resolved configuration.
     run_rag(
         db_path=db_path,
-        template=template,
+        promptTemplate=promptTemplate["text"],
+        slm=slm,
         model_name=model_name,
-        logfile=logfile,
-        exclude_model_name=exclude_model_name,
-        exclude_prompt=exclude_prompt,
+        logfile=logging.logfile,
+        exclude_model_name=logging.exclude_model_name,
+        exclude_prompt=logging.exclude_prompt,
     )
 
 

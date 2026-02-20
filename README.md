@@ -23,7 +23,7 @@
 │       └── failed_pdfs.txt
 │
 ├── config/              # RAG configs (one JSON per prompt setup)
-│   └── rag_v1.json      # Config: vectordbpath, template, model.model_name, logging (logfile, exclude_*)
+│   └── rag_v1.json      # Config: vectordbpath, promptTemplate, model.model_name, logging (logfile, exclude_*)
 │
 ├── chatbot
 │   ├── README.md
@@ -31,12 +31,10 @@
 │   ├── main.py
 │   ├── vectorDbSetup.py
 │   └── legalos_rag
-│       ├── __init__.py
-│       ├── README.md
-│       ├── factsRetriever.py
-│       ├── logger.py
-│       ├── ragInvoker.py
-│       └── prompt
+│       ├── README.md
+│       ├── __init__.py
+│       ├── runRag.py
+│       └── prompt
 │           ├── prompts.py
 │           └── promptSchema.py
 │
@@ -61,6 +59,7 @@ Before running **Legalos**, make sure you have:
 > ```bash
 > python -m chatbot.main --config ./config/rag_v1.json
 > ```
+>
 
 ---
 
