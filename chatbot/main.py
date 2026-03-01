@@ -26,7 +26,7 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         (result, retrieved_chunks, final_prompt) when chunks were found and the invoker ran.
         (None, [], None) when no relevant chunks were retrieved.
     """
-    
+
     # Retrieve relevant chunks from the vector database
     retrieved_chunks = chatbot.legalos_rag.runRag.getFacts(
         q=query,
