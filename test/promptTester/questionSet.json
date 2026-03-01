@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "law": "POSH",
+    "question": "My boss keeps sending me personal messages late at night. Does this count as sexual harassment? What is my recourse?"
+  },
+  {
+    "id": 2,
+    "law": "POSH",
+    "question": "I want to file a complaint, but my company doesn't have an Internal Committee (IC). What do I do?"
+  },
+  {
+    "id": 3,
+    "law": "HMA",
+    "question": "My husband has abandoned me. I have not been in contact with him for over 5 years. Can I remarry?"
+  },
+  {
+    "id": 4,
+    "law": "HMA",
+    "question": "My wife and I both want a divorce. I want to ensure I get custody of my child."
+  },
+  {
+    "id": 5,
+    "law": "HMA",
+    "question": "My partner and I got married in Delhi and later moved to the USA, where we separated and got a divorce after 3 years of marriage. Now I want to remarry in India but my wife has filed a suit against me for remarriage."
+  },
+  {
+    "id": 6,
+    "law": "MVA",
+    "question": "I met with an accident purely because of a pothole. Can I sue the municipal corporation for damages?"
+  },
+  {
+    "id": 7,
+    "law": "MVA",
+    "question": "The insurance company rejected my accident claim because my license was expired for two days. Is there a way to contest this?"
+  },
+  {
+    "id": 8,
+    "law": "MVA",
+    "question": "I sold my car 6 months ago, but the new owner hasn't transferred the RC. Am I still liable for his traffic fines?"
+  },
+  {
+    "id": 9,
+    "law": "JJA",
+    "question": "We want to adopt a child from a relative. What is the legal process to make sure the adoption is valid?"
+  },
+  {
+    "id": 10,
+    "law": "JJA",
+    "question": "I am a teacher and a student told me about abuse at home. Am I legally required to report this?"
+  },
+  {
+    "id": 11,
+    "law": "CGST",
+    "question": "I am a freelancer earning ₹25 Lakhs a year from US clients. Do I need to register for GST?"
+  },
+  {
+    "id": 12,
+    "law": "CGST",
+    "question": "I received a Show Cause Notice for a mismatch in GSTR-3B and GSTR-2A. How do I reply to this?"
+  },
+  {
+    "id": 13,
+    "law": "Consumer Protection Act",
+    "question": "I received a fake or damaged product, and the seller is refusing to pick it up or refund my money."
+  },
+  {
+    "id": 14,
+    "law": "Consumer Protection Act",
+    "question": "I joined a course because the advertisement said 'Guaranteed Placement,' but now they say it was just a marketing slogan. Can I sue for my fees?"
+  }
+]

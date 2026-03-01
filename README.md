@@ -26,17 +26,25 @@
 │   └── rag_v1.json      # Config: vectordbpath, promptTemplate, model.model_name, logging (logfile, exclude_*)
 │
 ├── chatbot
-│   ├── README.md
-│   ├── centralActsDownloader.py
-│   ├── main.py
-│   ├── vectorDbSetup.py
+│   ├── README.md
+│   ├── centralActsDownloader.py
+│   ├── main.py
+│   ├── vectorDbSetup.py
 │   └── legalos_rag
 │       ├── README.md
 │       ├── __init__.py
-│       ├── runRag.py
-│       └── prompt
+│       ├── runRag.py
+│       └── prompt
 │           ├── prompts.py
-│           └── promptSchema.py
+│           └── promptSchema.py
+│
+├── test
+│   └── promptTester
+│       ├── README.md
+│       ├── promptRunBatch.py
+│       ├── config/
+│       ├── questionSet.json
+│       └── outputs/
 │
 └── requirements.txt
 ```
@@ -53,9 +61,14 @@ Before running **Legalos**, make sure you have:
 
 > **Running scripts:** This project uses the **`-m` module structure**. Run Python scripts from the **project root** (`legalos/`) with `python -m chatbot.<module>`, e.g.:
 >
-> ```bash
-> python -m chatbot.main --config ./config/rag_v1.json
-> ```
+> - **Interactive RAG** (ask questions one at a time):
+>   ```bash
+>   python -m chatbot.main --config ./config/rag_v1.json
+>   ```
+> - **Batch prompt testing** (run a question set, write JSONL to `outputpath/`):
+>   ```bash
+>   python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json
+>   ```
 >
 
 ---
