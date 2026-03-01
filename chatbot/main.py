@@ -6,27 +6,62 @@ import chatbot.legalos_rag.runRag
 import pathlib
 import chatbot.legalos_rag
 
-# -------------------- GLOBAL VARIABLES --------------------
+# -------------------- SINGLE RAG INVOCATION --------------------
 
-
-
-# -------------------- MAIN RAG LOOP --------------------
-
-def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, exclude_model_name: bool, exclude_prompt: bool, slm):
+def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
     """
-    Run the interactive RAG system for legal question answering.
-    
-    Enters an interactive loop that retrieves relevant
-    documents from the vector database and generates answers with citations.
-    
+    Perform one RAG run: retrieve relevant chunks, generate answer, and return result.
+
+    Retrieves top-k document chunks from the vector database for the given query,
+    runs the RAG invoker (generate + parse), and returns the structured result
+    and the final prompt used. Does not log or interact with the user.
+
     Args:
-        db_path: Path to the Qdrant vector database
-        promptTemplate: Full prompt template string to pass to the RAG invoker
-        model_name: Ollama model name (from config model.model_name)
-        logfile: Path to the RAG run log file
-        exclude_model_name: Whether to omit model name in log entries
-        exclude_prompt: Whether to omit prompt in log entries
-        slm: Small Language Model instance
+        query: The user's legal question.
+        db_path: Path to the Qdrant vector database.
+        prompt_template: Full prompt template string for the RAG invoker.
+        slm: Small Language Model instance.
+
+    Returns:
+        (result, final_prompt) when chunks were found and the invoker ran.
+        (None, None) when no relevant chunks were retrieved.
+    """
+
+    # Retrieve relevant chunks from the vector database
+    retrieved_chunks = chatbot.legalos_rag.runRag.getFacts(
+        q=query,
+        db_path=db_path,
+    )
+    if not retrieved_chunks:
+        return (None, None)
+
+    # Generate RAG answer using the RAG invoker
+    result, final_prompt = chatbot.legalos_rag.runRag.invoker(
+        slm,
+        retrieved_chunks,
+        query,
+        prompt_template,
+    )
+    return (result, final_prompt)
+
+
+# -------------------- INTERACTIVE QUESTIONING --------------------
+
+def run_rag_loop(
+    db_path: str,
+    prompt_template: str,
+    model_name: str,
+    logfile: str,
+    exclude_model_name: bool,
+    exclude_prompt: bool,
+    slm,
+) -> None:
+    """
+    Run the interactive legal Q&A session: prompt for questions, invoke RAG, log, and print.
+
+    Enters a loop that repeatedly asks for a legal question, runs a single RAG
+    invocation via run_rag(), logs the run to the configured JSONL file, and
+    displays the answer and citations. Handles exit commands and empty input.
     """
 
     while True:
@@ -41,23 +76,11 @@ def run_rag(db_path: str, promptTemplate: str, model_name: str, logfile: str, ex
             print("Empty question. Try again.")
             continue
 
-        # Retrieve top-k relevant document chunks from vector database
-        retrievedChunks = chatbot.legalos_rag.runRag.getFacts(
-            q=query,
-            db_path=db_path
-        )
+        result, final_prompt = run_rag(query, db_path, prompt_template, slm)
 
-        if not retrievedChunks:
+        if result is None:
             print("\nAnswer:\n Not found in the documents")
             continue
-
-        # Generate structured answer using RAG pipeline (retrieve + generate + parse)
-        [result, final_prompt]= chatbot.legalos_rag.runRag.invoker(
-            slm,
-            retrievedChunks,
-            query,
-            promptTemplate,
-        )
 
         # Log the query, prompt, and response to JSONL file
         chatbot.legalos_rag.runRag.log_rag_run(
@@ -110,13 +133,13 @@ def main():
         config: dict = json.load(f)
 
     # Validate config and initialize SLM (returns 5 values)
-    db_path, promptTemplate, slm , model_name, logging= chatbot.legalos_rag.ensure_requirements(config)
+    db_path, prompt_template, slm, model_name, logging = chatbot.legalos_rag.ensure_requirements(config)
 
     # -------------------- RUN --------------------
     # Kick off the interactive RAG loop with resolved configuration.
-    run_rag(
+    run_rag_loop(
         db_path=db_path,
-        promptTemplate=promptTemplate["text"],
+        prompt_template=prompt_template["text"],
         slm=slm,
         model_name=model_name,
         logfile=logging.logfile,
