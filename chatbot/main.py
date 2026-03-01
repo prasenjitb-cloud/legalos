@@ -47,7 +47,7 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
 
 # -------------------- INTERACTIVE QUESTIONING --------------------
 
-def run_interactive_rag(
+def run_rag_loop(
     db_path: str,
     prompt_template: str,
     model_name: str,
@@ -82,6 +82,7 @@ def run_interactive_rag(
             print("\nAnswer:\n Not found in the documents")
             continue
 
+        # Log the query, prompt, and response to JSONL file
         chatbot.legalos_rag.runRag.log_rag_run(
             query=query,
             final_prompt=final_prompt,
@@ -131,9 +132,12 @@ def main():
     with config_path.open("r", encoding="utf-8") as f:
         config: dict = json.load(f)
 
+    # Validate config and initialize SLM (returns 5 values)
     db_path, prompt_template, slm, model_name, logging = chatbot.legalos_rag.ensure_requirements(config)
 
-    run_interactive_rag(
+    # -------------------- RUN --------------------
+    # Kick off the interactive RAG loop with resolved configuration.
+    run_rag_loop(
         db_path=db_path,
         prompt_template=prompt_template["text"],
         slm=slm,
