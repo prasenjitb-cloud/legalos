@@ -114,7 +114,7 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, SLM, model name, and logging config. The interactive loop uses **`chatbot.legalos_rag.runRag.getFacts`**, **`chatbot.legalos_rag.runRag.invoker`**, and **`chatbot.legalos_rag.runRag.log_rag_run`**.
+The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, SLM, model name, and logging config. Entry point **`main()`** then runs **`run_interactive_rag()`**, which loops over user input: for each question it calls **`run_rag()`** in `main.py` (one retrieval via `runRag.getFacts` + one generation via `runRag.invoker`), then **`runRag.log_rag_run`** to append the run to the log file, and prints the answer. Use **`run_rag(query, db_path, prompt_template, slm)`** directly for a single RAG run without the interactive loop or logging.
 
 **Config (from `legalos/`):**
 
