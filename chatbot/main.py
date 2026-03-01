@@ -13,8 +13,8 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
     Perform one RAG run: retrieve relevant chunks, generate answer, and return result.
 
     Retrieves top-k document chunks from the vector database for the given query,
-    runs the RAG invoker (generate + parse), and returns the structured result
-    and the final prompt used. Does not log or interact with the user.
+    runs the RAG invoker (generate + parse), and returns the structured result,
+    the retrieved chunks, and the final prompt used. Does not log or interact with the user.
 
     Args:
         query: The user's legal question.
@@ -23,8 +23,8 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         slm: Small Language Model instance.
 
     Returns:
-        (result, final_prompt) when chunks were found and the invoker ran.
-        (None, None) when no relevant chunks were retrieved.
+        (result, retrieved_chunks, final_prompt) when chunks were found and the invoker ran.
+        (None, [], None) when no relevant chunks were retrieved.
     """
 
     # Retrieve relevant chunks from the vector database
@@ -33,7 +33,7 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         db_path=db_path,
     )
     if not retrieved_chunks:
-        return (None, None)
+        return (None, [], None)
 
     # Generate RAG answer using the RAG invoker
     result, final_prompt = chatbot.legalos_rag.runRag.invoker(
@@ -42,7 +42,7 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         query,
         prompt_template,
     )
-    return (result, final_prompt)
+    return (result, retrieved_chunks, final_prompt)
 
 
 # -------------------- INTERACTIVE QUESTIONING --------------------
@@ -76,7 +76,7 @@ def run_rag_loop(
             print("Empty question. Try again.")
             continue
 
-        result, final_prompt = run_rag(query, db_path, prompt_template, slm)
+        result, _, final_prompt = run_rag(query, db_path, prompt_template, slm)
 
         if result is None:
             print("\nAnswer:\n Not found in the documents")
