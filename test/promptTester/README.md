@@ -93,4 +93,4 @@ The `evaluator/evaluatorPrompt.py` module defines the **`RAGEvaluation`** schema
       2. Decide if the model’s `answer_found` decision was correct.
       3. Score all fields according to the rubric and hard constraints (e.g. lower scores if relevant text exists but the model abstained, or if it hallucinates beyond the facts).
 
-This module is used by the evaluator script (e.g. `evaluator/evaluate.py` or `evaluatePrompt`) to parse the LLM’s JSON response into a `RAGEvaluation` object and aggregate scores across the batch.
+This module is intended to be used by a future evaluator script (e.g. `evaluator/evaluate.py` or `evaluatePrompt`) to parse the LLM’s JSON response into a `RAGEvaluation` object and aggregate scores across the batch.
