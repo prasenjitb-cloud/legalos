@@ -21,7 +21,7 @@ import langchain_core
 import test.promptTester.evaluator.evaluatorPrompt
 
 
-def format_model_answer(output):
+def _format_model_answer(output):
     """Format RAG output (dict or None) into explanation and citations for the evaluator prompt.
 
     Args:
@@ -53,7 +53,7 @@ EVALUATOR_MODEL_NAME = "llama-3.3-70b-versatile"
 
 # -------------------- EVALUATOR LLM SETUP --------------------
 
-def setup_evaluator():
+def _setup_evaluator():
     """Build the Groq chat model used as the RAG evaluator (EVALUATOR_MODEL_NAME)."""
     return langchain_groq.ChatGroq(
         model_name=EVALUATOR_MODEL_NAME,
@@ -61,7 +61,7 @@ def setup_evaluator():
     )
 
 
-def load_batch_results(path: pathlib.Path):
+def _load_batch_results(path: pathlib.Path):
     """Load a promptRunBatch JSONL file into metadata and per-question results.
 
     Args:
@@ -96,8 +96,8 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         batch_result_file: Path to the JSONL produced by promptRunBatch.
         outputpath: Directory to write evaluation_<run_id>.json into.
     """
-    evaluator = setup_evaluator()
-    metadata, batch_results = load_batch_results(batch_result_file)
+    evaluator = _setup_evaluator()
+    metadata, batch_results = _load_batch_results(batch_result_file)
 
     if metadata is None:
         raise ValueError("Batch result file is empty or invalid")
@@ -119,7 +119,7 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
     evaluator_parser = langchain_core.output_parsers.PydanticOutputParser(
         pydantic_object=test.promptTester.evaluator.evaluatorPrompt.RAGEvaluation
     )
-    evaluator_prompt = test.promptTester.evaluator.evaluatorPrompt.setup_evaluator_prompt(
+    evaluator_prompt = test.promptTester.evaluator.evaluatorPrompt._setup_evaluator_prompt(
         evaluator_parser
     )
 
@@ -133,7 +133,7 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         if isinstance(facts, list):
             facts = "\n".join(str(x) for x in facts)
 
-        explanation, citations = format_model_answer(result.get("output"))
+        explanation, citations = _format_model_answer(result.get("output"))
         final_evaluator_prompt = evaluator_prompt.format(
             question=result["question"],
             facts=facts,
