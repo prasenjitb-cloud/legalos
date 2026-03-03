@@ -69,3 +69,28 @@ Use a different config file to change the vector DB, template, or question set.
 - **promptRunBatch.py** – Entrypoint: loads config, runs the batch, appends each result to `outputpath/run_<run_id>.jsonl`.
 - **config/** – Example config(s), e.g. `v1.json`.
 - **questionSet.json** – Example question set.
+
+## evaluatorPrompt
+
+The `evaluator/evaluatorPrompt.py` module defines the **`RAGEvaluation`** schema and the **evaluator prompt template** used to score LegalOS RAG answers with an LLM.
+
+- **Schema (`RAGEvaluation`)**: A Pydantic model that specifies all evaluation dimensions the LLM must output as JSON:
+  - `factual_existence` – whether the model correctly decided if an answer exists in the Retrieved Facts.
+  - `factual_faithfulness` – how strictly the answer is supported by the retrieved facts.
+  - `query_relevance` – how directly the answer addresses the user’s question using those facts.
+  - `legal_precision` – accuracy of legal acts, sections, and terminology.
+  - `clarity` – structure and readability of the answer.
+  - `citation_quality` – quality of selected citations from the facts.
+  - `explanation_from_citations` – how well the explanation is grounded in the cited text.
+  - `total` – computed sum of all the above fields (max score = 28).
+
+- **Prompt template (`setup_evaluator_prompt`)**:
+  - Accepts a `PydanticOutputParser` for `RAGEvaluation` and builds a `PromptTemplate` that:
+    - Injects `format_instructions` so the LLM must return valid JSON only.
+    - Takes `question`, `facts`, `model_answer`, and `citations` as inputs.
+    - Guides the LLM to:
+      1. Decide whether the facts contain statutory language that answers the question.
+      2. Decide if the model’s `answer_found` decision was correct.
+      3. Score all fields according to the rubric and hard constraints (e.g. lower scores if relevant text exists but the model abstained, or if it hallucinates beyond the facts).
+
+This module is intended to be used by a future evaluator script (e.g. `evaluator/evaluate.py` or `evaluatePrompt`) to parse the LLM’s JSON response into a `RAGEvaluation` object and aggregate scores across the batch.
