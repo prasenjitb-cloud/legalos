@@ -4,7 +4,7 @@
 /chatbot/rag_runs.jsonl
 __pycache__/
 /test/promptTester/outputs/*
-
+/test/promptTester/evaluator/evaluationResults/*
 # macOS system files
 .DS_Store
 **/.DS_Store

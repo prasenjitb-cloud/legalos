@@ -39,12 +39,17 @@
 │           └── promptSchema.py
 │
 ├── test
-│   └── promptTester
-│       ├── README.md
-│       ├── promptRunBatch.py
-│       ├── config/
-│       ├── questionSet.json
-│       └── outputs/
+│   └── promptTester          # Batch prompt runner + evaluator
+│       ├── README.md         # Detailed docs for batch + evaluator
+│       ├── promptRunBatch.py # Batch runner entrypoint
+│       ├── config/           # Batch configs (vectordbpath, promptTemplate, questionsetfile, outputpath)
+│       ├── questionSet.json  # Example question set
+│       ├── outputs/          # JSONL batch run outputs (one line per question)
+│       └── evaluator/
+│           ├── evaluate.py        # LLM-based evaluator for batch runs
+│           ├── evaluatorPrompt.py # RAGEvaluation schema + evaluator prompt template
+│           ├── config/            # Evaluator configs (batchResultFile, outputpath)
+│           └── evaluationResults/ # Saved evaluation_<run_id>_*.json files
 │
 └── requirements.txt
 ```
@@ -69,6 +74,11 @@ Before running **Legalos**, make sure you have:
 >   ```bash
 >   python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json
 >   ```
+> - **Evaluate a batch run** (LLM-based scoring into `evaluationResults/`):
+>   ```bash
+>   python -m test.promptTester.evaluator.evaluate --config test/promptTester/evaluator/config/eval1.json
+>   ```
+>   See `test/promptTester/README.md` for details on the RAGEvaluation schema, evaluator prompt, and evaluation JSON format.
 >
 
 ---
