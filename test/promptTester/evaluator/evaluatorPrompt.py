@@ -4,7 +4,7 @@ import pydantic
 
 class RAGEvaluation(pydantic.BaseModel):
 
-    answer_decision_correct: int = pydantic.Field(
+    factual_existence: int = pydantic.Field(
         ...,
         ge=0,
         le=1,
@@ -16,7 +16,7 @@ class RAGEvaluation(pydantic.BaseModel):
         )
     )
 
-    faithfulness: int = pydantic.Field(
+    factual_faithfulness: int = pydantic.Field(
         ...,
         ge=0,
         le=5,
@@ -32,7 +32,7 @@ class RAGEvaluation(pydantic.BaseModel):
         )
     )
 
-    relevance: int = pydantic.Field(
+    query_relevance: int = pydantic.Field(
         ...,
         ge=0,
         le=5,
@@ -44,7 +44,7 @@ class RAGEvaluation(pydantic.BaseModel):
             "2 = Mostly indirect or avoids clear answer.\n"
             "1 = Barely related.\n"
             "0 = Does not address the question.\n"
-            "If relevant statutory text exists but model says answer_found=false, relevance must be <= 2."
+            "If relevant statutory text exists but model says answer_found=false, query_relevance must be <= 2."
         )
     )
 
@@ -53,7 +53,7 @@ class RAGEvaluation(pydantic.BaseModel):
         ge=0,
         le=4,
         description=(
-            "Accuracy of legal terms, sections, and statutory references.\n"
+            "Accuracy of legal terms, sections, and statutory references in the response.\n"
             "4 = Exact act names, sections, and correct terminology.\n"
             "3 = Mostly correct with minor imprecision.\n"
             "2 = Vague or partially incorrect references.\n"
@@ -67,7 +67,7 @@ class RAGEvaluation(pydantic.BaseModel):
         ge=0,
         le=3,
         description=(
-            "Clarity, structure, and readability of the answer.\n"
+            "Clarity, structure, and readability of the final answer.\n"
             "3 = Very clear and structured.\n"
             "2 = Mostly clear.\n"
             "1 = Hard to follow.\n"
@@ -80,7 +80,7 @@ class RAGEvaluation(pydantic.BaseModel):
         ge=0,
         le=5,
         description=(
-            "How well the model selected useful citations from the retrieved facts.\n"
+            "How well the model selected useful citations from the retrieved facts in the final response.\n"
             "5 = Cited all key relevant portions.\n"
             "4 = Cited most relevant parts.\n"
             "3 = Cited some relevant parts but missed others.\n"
@@ -96,7 +96,7 @@ class RAGEvaluation(pydantic.BaseModel):
         ge=0,
         le=5,
         description=(
-            "How well the model explained the content of its own citations.\n"
+            "How well the model explained the content of its own citations in the final response.\n"
             "5 = Clear explanation grounded in cited text.\n"
             "4 = Mostly grounded with minor gaps.\n"
             "3 = Partial explanation.\n"
@@ -107,15 +107,17 @@ class RAGEvaluation(pydantic.BaseModel):
         )
     )
 
-    total: int = pydantic.Field(
-        ...,
-        ge=0,
-        le=28,
-        description=(
-            "Total score. Must equal the sum of all above fields.\n"
-            "Maximum possible score = 28."
+    @property
+    def total(self):
+        return (
+            self.factual_existence
+            + self.factual_faithfulness
+            + self.query_relevance
+            + self.legal_precision
+            + self.clarity
+            + self.citation_quality
+            + self.explanation_from_citations
         )
-    )
 
 def setup_evaluator_prompt(parser):
     return langchain_core.prompts.PromptTemplate(
@@ -156,14 +158,14 @@ Rules:
 
 Mandatory Scoring Constraints:
 - If relevant statutory text exists and model said answer_found=false:
-    - answer_decision_correct = 0
-    - relevance <= 2
+    - factual_existence = 0
+    - query_relevance <= 2
     - citation_quality <= 2
     - explanation_from_citations <= 2
 - If no relevant text exists and model correctly abstained:
-    - answer_decision_correct = 1
+    - factual_existence = 1
 - If model hallucinated beyond facts:
-    - faithfulness <= 2
+    - factual_faithfulness <= 2
 
 Scoring:
 - Use integer values only.

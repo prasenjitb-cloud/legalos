@@ -75,14 +75,14 @@ Use a different config file to change the vector DB, template, or question set.
 The `evaluator/evaluatorPrompt.py` module defines the **`RAGEvaluation`** schema and the **evaluator prompt template** used to score LegalOS RAG answers with an LLM.
 
 - **Schema (`RAGEvaluation`)**: A Pydantic model that specifies all evaluation dimensions the LLM must output as JSON:
-  - `answer_decision_correct` – whether the model correctly decided if an answer exists in the Retrieved Facts.
-  - `faithfulness` – how strictly the answer is grounded in the retrieved facts.
-  - `relevance` – how directly the answer addresses the user’s question.
+  - `factual_existence` – whether the model correctly decided if an answer exists in the Retrieved Facts.
+  - `factual_faithfulness` – how strictly the answer is supported by the retrieved facts.
+  - `query_relevance` – how directly the answer addresses the user’s question using those facts.
   - `legal_precision` – accuracy of legal acts, sections, and terminology.
   - `clarity` – structure and readability of the answer.
   - `citation_quality` – quality of selected citations from the facts.
   - `explanation_from_citations` – how well the explanation is grounded in the cited text.
-  - `total` – sum of all the above fields (max score = 28).
+  - `total` – computed sum of all the above fields (max score = 28).
 
 - **Prompt template (`setup_evaluator_prompt`)**:
   - Accepts a `PydanticOutputParser` for `RAGEvaluation` and builds a `PromptTemplate` that:
