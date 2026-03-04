@@ -59,6 +59,7 @@ Entries with an empty `question` are skipped (no result is written for them).
 From the **legalos** project root:
 
 ```bash
+# 1. Run the batch prompt tester (produces outputs/run_<run_id>.jsonl)
 python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.json
 ```
 
@@ -70,27 +71,73 @@ Use a different config file to change the vector DB, template, or question set.
 - **config/** – Example config(s), e.g. `v1.json`.
 - **questionSet.json** – Example question set.
 
-## evaluatorPrompt
+## Evaluator and evaluatorPrompt
 
-The `evaluator/evaluatorPrompt.py` module defines the **`RAGEvaluation`** schema and the **evaluator prompt template** used to score LegalOS RAG answers with an LLM.
+The evaluator pipeline has two pieces:
 
-- **Schema (`RAGEvaluation`)**: A Pydantic model that specifies all evaluation dimensions the LLM must output as JSON:
-  - `factual_existence` – whether the model correctly decided if an answer exists in the Retrieved Facts.
-  - `factual_faithfulness` – how strictly the answer is supported by the retrieved facts.
-  - `query_relevance` – how directly the answer addresses the user’s question using those facts.
-  - `legal_precision` – accuracy of legal acts, sections, and terminology.
-  - `clarity` – structure and readability of the answer.
-  - `citation_quality` – quality of selected citations from the facts.
-  - `explanation_from_citations` – how well the explanation is grounded in the cited text.
-  - `total` – computed sum of all the above fields (max score = 28).
+- `evaluator/evaluatorPrompt.py` – defines the **`RAGEvaluation`** schema and the **evaluator prompt template**.
+- `evaluator/evaluate.py` – CLI script that reads a batch run JSONL file and uses the evaluator LLM to score each question.
 
-- **Prompt template (`setup_evaluator_prompt`)**:
-  - Accepts a `PydanticOutputParser` for `RAGEvaluation` and builds a `PromptTemplate` that:
-    - Injects `format_instructions` so the LLM must return valid JSON only.
-    - Takes `question`, `facts`, `model_answer`, and `citations` as inputs.
-    - Guides the LLM to:
-      1. Decide whether the facts contain statutory language that answers the question.
-      2. Decide if the model’s `answer_found` decision was correct.
-      3. Score all fields according to the rubric and hard constraints (e.g. lower scores if relevant text exists but the model abstained, or if it hallucinates beyond the facts).
+### RAGEvaluation schema (`evaluatorPrompt.py`)
 
-This module is intended to be used by a future evaluator script (e.g. `evaluator/evaluate.py` or `evaluatePrompt`) to parse the LLM’s JSON response into a `RAGEvaluation` object and aggregate scores across the batch.
+The `RAGEvaluation` Pydantic model specifies all evaluation dimensions the LLM must output as JSON:
+
+- **factual_existence**: Whether the model correctly decided if an answer exists in the Retrieved Facts.
+- **factual_faithfulness**: How strictly the answer is supported by the retrieved facts.
+- **query_relevance**: How directly the answer addresses the user’s question using those facts.
+- **legal_precision**: Accuracy of legal acts, sections, and terminology.
+- **clarity**: Structure and readability of the answer.
+- **citation_quality**: Quality of selected citations from the facts.
+- **explanation_from_citations**: How well the explanation is grounded in the cited text.
+- **total**: Computed sum of all the above fields (max score = 28).
+
+### Evaluator prompt template (`evaluatorPrompt.py`)
+
+The `setup_evaluator_prompt(parser)` function builds a `PromptTemplate` that:
+
+- Injects `format_instructions` from a `PydanticOutputParser` for `RAGEvaluation`, forcing the LLM to return valid JSON only.
+- Takes `question`, `facts`, `model_answer`, and `citations` as inputs.
+- Guides the LLM to:
+  1. Decide whether the facts contain statutory language that answers the question.
+  2. Decide if the model’s `answer_found` decision was correct.
+  3. Score all fields according to the rubric and hard constraints (e.g. lower scores if relevant text exists but the model abstained, or if it hallucinates beyond the facts).
+
+### Evaluator script (`evaluator/evaluate.py`)
+
+The evaluator script:
+
+- Loads a run JSONL file produced by `promptRunBatch`:
+  - First line: run metadata.
+  - Subsequent lines: one result per question (`question`, `retrieved_chunks`, `output`).
+- Builds the evaluator LLM and wiring:
+  - `evaluator_parser = PydanticOutputParser(pydantic_object=RAGEvaluation)`
+  - `evaluator_prompt = setup_evaluator_prompt(evaluator_parser)`
+- For each result without error:
+  - Normalizes `retrieved_chunks` into a `facts` string.
+  - Extracts `model_answer` + `citations` from the RAG output.
+  - Formats the evaluator prompt and calls the evaluator LLM.
+  - Parses the JSON response into a `RAGEvaluation` instance and stores it under the `evaluation` key.
+- Aggregates numeric scores across all evaluated questions:
+  - Sums each field (`factual_existence`, `factual_faithfulness`, `query_relevance`, `legal_precision`, `clarity`, `citation_quality`, `explanation_from_citations`, `total`).
+  - Computes per-field averages and writes them to `aggregate_scores`.
+  - Includes `max_scores` for each field (matching the schema).
+
+### How to run the evaluator
+
+From the **legalos** project root:
+
+```bash
+# 2. Evaluate a run (produces evaluation_<run_id>.json in the configured outputpath)
+python -m test.promptTester.evaluator.evaluate --config test/promptTester/evaluator/config/eval1.json
+```
+
+The evaluator config must provide:
+
+- **batchResultFile**: Path to the JSONL run file (e.g. `test/promptTester/outputs/run_<run_id>.jsonl`).
+- **outputpath**: Directory where `evaluation_<run_id>_<timestamp>.json` will be written.
+
+The evaluation JSON contains:
+
+- `run_metadata`: Source run info, SLM model, evaluator model, counts, and `max_scores`.
+- `aggregate_scores`: Average scores per field across evaluated questions.
+- `results`: Per-question entries with `question`, original `rag_output`, and `evaluation` (the `RAGEvaluation` fields).
