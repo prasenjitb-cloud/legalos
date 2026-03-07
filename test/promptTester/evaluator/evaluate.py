@@ -119,7 +119,7 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
     evaluator_parser = langchain_core.output_parsers.PydanticOutputParser(
         pydantic_object=test.promptTester.evaluator.evaluatorPrompt.RAGEvaluation
     )
-    evaluator_prompt = test.promptTester.evaluator.evaluatorPrompt._setup_evaluator_prompt(
+    evaluator_prompt = test.promptTester.evaluator.evaluatorPrompt.setup_evaluator_prompt(
         evaluator_parser
     )
 
