@@ -21,7 +21,7 @@ Each run file is JSONL (one JSON object per line):
   - `retrieved_chunks` (chunks used for that question)
   - `output`: the structured `LegalAnswer` (e.g. `answer_found`, `explanation`, `citations`), or `null` when no chunks were retrieved.
 
-You can use this file for evaluation (e.g. with `evaluatePrompt`) or manual inspection.
+You can use this file for evaluation (e.g. with the evaluator script `evaluate.py` and its `evaluate_rag` function) or manual inspection.
 
 ## Config file
 
