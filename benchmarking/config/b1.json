@@ -1,0 +1,5 @@
+{
+    "batchResultFile": "test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260307_184410.json",
+    "questionSetFile": "test/promptTester/questionSet.json",
+    "outputpath": "benchmarking/benchmarks/b1"
+}

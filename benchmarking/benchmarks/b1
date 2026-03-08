@@ -1,0 +1,13 @@
+{
+  "evaluator_file": "/Users/harshitsharma/BTP/legalos/test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260307_184410.json",
+  "question_set_file": "/Users/harshitsharma/BTP/legalos/test/promptTester/questionSet.json",
+  "section_scores_avg": {
+    "POSH": 4.5,
+    "HMA": 9.0,
+    "MVA": 13.333333333333334,
+    "JJA": 9.5,
+    "CGST": 9.0,
+    "Consumer Protection Act": 9.0
+  },
+  "benchmark_score": 9.055555555555555
+}

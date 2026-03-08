@@ -107,8 +107,9 @@ class RAGEvaluation(pydantic.BaseModel):
         )
     )
 
+    @pydantic.computed_field
     @property
-    def total(self):
+    def total(self)-> int:
         return (
             self.factual_existence
             + self.factual_faithfulness

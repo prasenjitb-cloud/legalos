@@ -51,6 +51,12 @@
 │           ├── config/            # Evaluator configs (batchResultFile, outputpath)
 │           └── evaluationResults/ # Saved evaluation_<run_id>_*.json files
 │
+├── benchmarking                 # Benchmark scores from evaluation results
+│   ├── README.md
+│   ├── calculateBenchmarkScore.py
+│   ├── config/                  # Configs (batchResultFile, questionSetFile, outputpath)
+│   └── benchmarks/              # Benchmark reports (section + overall scores)
+│
 └── requirements.txt
 ```
 
@@ -82,6 +88,11 @@ Before running **Legalos**, make sure you have:
 >   python -m test.promptTester.evaluator.evaluate --config test/promptTester/evaluator/config/eval1.json
 >   ```
 >   See `test/promptTester/README.md` for details on the RAGEvaluation schema, evaluator prompt, and evaluation JSON format.
+> - **Calculate benchmark score** (aggregate evaluation results by section):
+>   ```bash
+>   python -m benchmarking.calculateBenchmarkScore --config benchmarking/config/b1.json
+>   ```
+>   See `test/promptTester/README.md` for the evaluator and `benchmarking/README.md` for benchmark scoring.
 >
 
 ---
