@@ -21,12 +21,6 @@ The benchmark score aggregates LLM evaluation results across a question set. It 
 python -m benchmarking.calculateBenchmarkScore --config benchmarking/config/b1.json
 ```
 
-Or run the script directly:
-
-```bash
-python benchmarking/calculateBenchmarkScore.py --config benchmarking/config/b1.json
-```
-
 ## Config Format
 
 Create a JSON config in `benchmarking/config/`:

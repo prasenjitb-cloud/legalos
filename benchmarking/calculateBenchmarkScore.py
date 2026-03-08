@@ -84,9 +84,9 @@ def main():
     if not outputpath:
         raise ValueError("Config must provide 'outputpath'")
 
-    batch_path = pathlib.Path(batchResultFile).resolve()
-    output_path = pathlib.Path(outputpath).resolve()
-    question_set_path = pathlib.Path(questionSetFile).resolve()
+    batch_path = pathlib.Path(batchResultFile)
+    output_path = pathlib.Path(outputpath)
+    question_set_path = pathlib.Path(questionSetFile)
 
     calculate_benchmark_score(batch_path, output_path, question_set_path)
 
