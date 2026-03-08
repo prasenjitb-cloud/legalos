@@ -4,7 +4,6 @@
 /chatbot/rag_runs.jsonl
 __pycache__/
 /test/promptTester/outputs/*
-!/test/promptTester/outputs/run_20260307_143019.jsonl
 /test/promptTester/evaluator/evaluationResults/*
 !/test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260307_184410.json
 # macOS system files
