@@ -18,12 +18,12 @@ The benchmark score aggregates LLM evaluation results across a question set. It 
 
 ```bash
 # From legalos root
-python -m benchmarking.calculateBenchmarkScore --config benchmarking/config/b1.json
+python -m benchmarking.calculateBenchmarkScore --config benchmarking/benchmarks/config/b1.json
 ```
 
 ## Config Format
 
-Create a JSON config in `benchmarking/config/`:
+Create a JSON config in `benchmarking/benchmarks/config/`:
 
 ```json
 {
@@ -37,7 +37,7 @@ Create a JSON config in `benchmarking/config/`:
 |-----|-------------|
 | `batchResultFile` | Path to evaluation results JSON |
 | `questionSetFile` | Path to question set JSON (must include `id` and `section`) |
-| `outputpath` | Path for the benchmark report output |
+| `outputpath` | Output **file path** for the benchmark report JSON |
 
 Paths are resolved relative to the current working directory.
 
@@ -61,14 +61,16 @@ The script writes a JSON report:
 }
 ```
 
+**Range of `benchmark_score`**: 0–28.
+
 ## Directory Structure
 
 ```
 benchmarking/
 ├── README.md
 ├── calculateBenchmarkScore.py
-├── config/
-│   └── b1.json
 └── benchmarks/
-    └── b1
+    ├── b1
+    └── config/
+        └── b1.json
 ```
