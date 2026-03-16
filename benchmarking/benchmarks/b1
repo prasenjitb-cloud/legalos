@@ -1,13 +1,62 @@
 {
-  "evaluator_file": "test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260307_184410.json",
+  "evaluator_file": "test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260316_175114.json",
   "question_set_file": "test/promptTester/questionSet.json",
-  "section_scores_avg": {
-    "POSH": 4.5,
-    "HMA": 9.0,
-    "MVA": 13.333333333333334,
-    "JJA": 9.5,
-    "CGST": 9.0,
-    "Consumer Protection Act": 9.0
-  },
-  "benchmark_score": 9.055555555555555
+  "benchmark_avg_score": 9.5,
+  "benchmark_avg_percentage": 33.93,
+  "sections": {
+    "POSH": {
+      "avg_score": 6.0,
+      "avg_percentage": 21.43,
+      "support_metrics": {
+        "explanation_provided_rate": 0.0,
+        "citation_rate": 50.0,
+        "avg_retrieved_chunks": 3.0
+      }
+    },
+    "HMA": {
+      "avg_score": 9.0,
+      "avg_percentage": 32.14,
+      "support_metrics": {
+        "explanation_provided_rate": 33.33,
+        "citation_rate": 33.33,
+        "avg_retrieved_chunks": 3.0
+      }
+    },
+    "MVA": {
+      "avg_score": 13.33,
+      "avg_percentage": 47.62,
+      "support_metrics": {
+        "explanation_provided_rate": 33.33,
+        "citation_rate": 66.67,
+        "avg_retrieved_chunks": 3.0
+      }
+    },
+    "JJA": {
+      "avg_score": 9.0,
+      "avg_percentage": 32.14,
+      "support_metrics": {
+        "explanation_provided_rate": 50.0,
+        "citation_rate": 50.0,
+        "avg_retrieved_chunks": 3.0
+      }
+    },
+    "CGST": {
+      "avg_score": 9.0,
+      "avg_percentage": 32.14,
+      "support_metrics": {
+        "explanation_provided_rate": 0.0,
+        "citation_rate": 0.0,
+        "avg_retrieved_chunks": 3.0
+      }
+    },
+    "Consumer Protection Act": {
+      "avg_score": 9.0,
+      "avg_percentage": 32.14,
+      "support_metrics": {
+        "explanation_provided_rate": 0.0,
+        "citation_rate": 0.0,
+        "avg_retrieved_chunks": 3.0
+      }
+    }
+  }
 }

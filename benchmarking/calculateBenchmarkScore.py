@@ -29,24 +29,72 @@ def calculate_benchmark_score(
     for q in questions:
         section_ids.setdefault(q["section"], []).append(q["id"])
 
-    # Calculate the average score for each section
-    section_avgs = {}
-    for s, ids in section_ids.items():
-        scores = [
-            by_id[qid]["evaluation"]["total"]
-            for qid in ids
-            if qid in by_id
-        ]
-        section_avgs[s] = sum(scores) / len(scores) if scores else 0
+    # Calculate the average score and percentage for each section,
+    # and track global aggregates across all questions.
+    sections = {}
+    all_scores = []
+    all_percentages = []
 
-    # Calculate the overall benchmark score
-    overall_score = sum(section_avgs.values()) / len(section_avgs) if section_avgs else 0
+    for section, ids in section_ids.items():
+
+        scores = []
+        percentages = []
+        explanation_provided = 0
+        citations = 0
+        retrieved = []
+
+        for qid in ids:
+            if qid not in by_id:
+                continue
+
+            r = by_id[qid]
+
+            total = r["layer2"]["total"]
+            scores.append(total["score"])
+            percentages.append(total["percentage"])
+            all_scores.append(total["score"])
+            all_percentages.append(total["percentage"])
+
+            l1 = r["layer1"]
+
+            if l1["explanation_provided"]:
+                explanation_provided += 1
+
+            if l1["num_citations"] > 0:
+                citations += 1
+
+            retrieved.append(l1["num_retrieved_chunks"])
+
+        n = len(scores)
+
+        sections[section] = {
+            # Average total score and percentage for this section
+            "avg_score": round(sum(scores) / n, 2) if n else 0,
+            "avg_percentage": round(sum(percentages) / n, 2) if n else 0,
+
+            "support_metrics": {
+                # Store rates as percentages (0–100)
+                "explanation_provided_rate": round(explanation_provided / n * 100, 2) if n else 0,
+                "citation_rate": round(citations / n * 100, 2) if n else 0,
+                # This is a count, keep as-is
+                "avg_retrieved_chunks": sum(retrieved) / n if n else 0
+            }
+        }
+
+    # Overall benchmark: average score and percentage across all questions
+    overall_avg_score = round(sum(all_scores) / len(all_scores), 2) if all_scores else 0
+    overall_avg_percentage = round(sum(all_percentages) / len(all_percentages), 2) if all_percentages else 0
+
     # Create the report
     report = {
         "evaluator_file": str(batch_path),
         "question_set_file": str(question_set_path),
-        "section_scores_avg": section_avgs,
-        "benchmark_score": overall_score,
+
+        # Overall averages across all questions
+        "benchmark_avg_score": overall_avg_score,
+        "benchmark_avg_percentage": overall_avg_percentage,
+
+        "sections": sections
     }
 
     # Write the report to the output file
