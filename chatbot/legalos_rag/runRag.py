@@ -67,7 +67,7 @@ def _format_docs(docs: list[langchain_core.documents.Document]) -> str:
         str: Formatted string suitable for the {facts} placeholder in the RAG prompt.
     """
     blocks = []
-    for i, doc in enumerate(docs, start=1):
+    for i, doc in enumerate(docs, 1):
         meta = doc.metadata
         blocks.append(
             f"""[DOC {i}]
