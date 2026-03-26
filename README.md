@@ -1,5 +1,21 @@
 # Legalos ⚖️
 
+**High-level overview**
+
+India’s legal ecosystem is fragmented: citizens struggle to find the right lawyers or even basic procedural information, while lawyers lack simple tools to organize case material and surface insights from their own documents. Legalos will be a legal operating system for this ecosystem by solving both sides of this problem.
+
+Right now, this repo focuses on a **RAG-based legal chatbot** that will let users ask natural-language questions over Indian acts and get grounded, citation-rich answers from an offline vector database.
+
+In its full form, Legalos will have three pillars:
+
+- **Client-facing legal assistant**: A chatbot that will help citizens understand procedures, rights, and basic legal concepts, and will guide them toward the right type of legal help.
+- **Lawyer-facing copilot**: A chatbot that will sit on top of a lawyer’s own documents and workflows, will help retrieve case information quickly, assist with legal research, and support drafting and refining arguments.
+- **Collaboration and consultation platform**: A shared layer where clients and lawyers will be able to connect, manage engagements, and use the assistants together during consultations.
+
+The long-term vision is to become India’s premier Legal OS: the default, trusted layer where citizens discover legal help, lawyers manage their matters, and both can query courts, acts, and case history and get reliable, context-aware answers.
+
+---
+
 **Your one-stop solution to all your legal problems.**
 
 ---
