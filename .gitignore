@@ -5,6 +5,7 @@
 __pycache__/
 /test/promptTester/outputs/*
 /test/promptTester/evaluator/evaluationResults/*
+!/test/promptTester/evaluator/evaluationResults/evaluation_20260307_143019_20260316_175114.json
 # macOS system files
 .DS_Store
 **/.DS_Store

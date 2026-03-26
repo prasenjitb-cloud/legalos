@@ -77,7 +77,7 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
                 record = {
                     "question_id": qid,
                     "question": question_text,
-                    "retrieved_chunks": retrieved_chunks if retrieved_chunks else [],
+                    "retrieved_chunks": retrieved_chunks if retrieved_chunks else "",
                     "output": result.model_dump() if result else None,
                 }
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")

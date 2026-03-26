@@ -90,6 +90,7 @@ The `RAGEvaluation` Pydantic model specifies all evaluation dimensions the LLM m
 - **citation_quality**: Quality of selected citations from the facts.
 - **explanation_from_citations**: How well the explanation is grounded in the cited text.
 - **total**: Computed sum of all the above fields (max score = 28).
+- **percentage**: Computed as `(total / 28) * 100`.
 
 ### Evaluator prompt template (`evaluatorPrompt.py`)
 
@@ -116,9 +117,13 @@ The evaluator script:
   - Normalizes `retrieved_chunks` into a `facts` string.
   - Extracts `model_answer` + `citations` from the RAG output.
   - Formats the evaluator prompt and calls the evaluator LLM.
-  - Parses the JSON response into a `RAGEvaluation` instance and stores it under the `evaluation` key.
+  - Parses the JSON response into a `RAGEvaluation` instance and stores it as `layer2` (per-metric score + percentage breakdown).
+- Additionally computes a simple `layer1` structural summary from the raw RAG output:
+  - `explanation_provided`: `true` if `rag_output.explanation` exists and is non-empty.
+  - `num_retrieved_chunks`: count of `[DOC n]` markers in `retrieved_chunks`.
+  - `num_citations`: number of citation objects in `rag_output.citations`.
 - Aggregates numeric scores across all evaluated questions:
-  - Sums each field (`factual_existence`, `factual_faithfulness`, `query_relevance`, `legal_precision`, `clarity`, `citation_quality`, `explanation_from_citations`, `total`).
+  - Sums each field (`factual_existence`, `factual_faithfulness`, `query_relevance`, `legal_precision`, `clarity`, `citation_quality`, `explanation_from_citations`, `total`, `percentage`).
   - Computes per-field averages and writes them to `aggregate_scores`.
   - Includes `max_scores` for each field (matching the schema).
 
@@ -140,4 +145,8 @@ The evaluation JSON contains:
 
 - `run_metadata`: Source run info, SLM model, evaluator model, counts, and `max_scores`.
 - `aggregate_scores`: Average scores per field across evaluated questions.
-- `results`: Per-question entries with `question`, original `rag_output`, and `evaluation` (the `RAGEvaluation` fields).
+- `results`: Per-question entries with:
+  - `question_id`, `question`
+  - `rag_output`: the original model output object (or `null`)
+  - `layer1`: structural summary (`explanation_provided`, `num_retrieved_chunks`, `num_citations`)
+  - `layer2`: evaluator scores (per metric: `{ score, percentage }`, plus `total`)

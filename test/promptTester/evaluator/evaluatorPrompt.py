@@ -3,6 +3,13 @@ import pydantic
 
 
 class RAGEvaluation(pydantic.BaseModel):
+    _MAX_FACTUAL_EXISTENCE: int = 1
+    _MAX_FACTUAL_FAITHFULNESS: int = 5
+    _MAX_QUERY_RELEVANCE: int = 5
+    _MAX_LEGAL_PRECISION: int = 4
+    _MAX_CLARITY: int = 3
+    _MAX_CITATION_QUALITY: int = 5
+    _MAX_EXPLANATION_FROM_CITATIONS: int = 5
 
     factual_existence: int = pydantic.Field(
         ...,
@@ -107,8 +114,9 @@ class RAGEvaluation(pydantic.BaseModel):
         )
     )
 
+    @pydantic.computed_field
     @property
-    def total(self):
+    def total(self)-> int:
         return (
             self.factual_existence
             + self.factual_faithfulness
@@ -117,6 +125,57 @@ class RAGEvaluation(pydantic.BaseModel):
             + self.clarity
             + self.citation_quality
             + self.explanation_from_citations
+        )
+
+    @pydantic.computed_field
+    @property
+    def percentage(self)-> float:
+        return (
+            self.total
+            / 28
+            * 100.0
+        )
+
+    def _score_to_percentage(self, score: int, max_score: int) -> float:
+        if max_score <= 0:
+            return 0.0
+        return (score / max_score) * 100.0
+
+    @pydantic.computed_field
+    @property
+    def factual_existence_percentage(self) -> float:
+        return self._score_to_percentage(self.factual_existence, self._MAX_FACTUAL_EXISTENCE)
+
+    @pydantic.computed_field
+    @property
+    def factual_faithfulness_percentage(self) -> float:
+        return self._score_to_percentage(self.factual_faithfulness, self._MAX_FACTUAL_FAITHFULNESS)
+
+    @pydantic.computed_field
+    @property
+    def query_relevance_percentage(self) -> float:
+        return self._score_to_percentage(self.query_relevance, self._MAX_QUERY_RELEVANCE)
+
+    @pydantic.computed_field
+    @property
+    def legal_precision_percentage(self) -> float:
+        return self._score_to_percentage(self.legal_precision, self._MAX_LEGAL_PRECISION)
+
+    @pydantic.computed_field
+    @property
+    def clarity_percentage(self) -> float:
+        return self._score_to_percentage(self.clarity, self._MAX_CLARITY)
+
+    @pydantic.computed_field
+    @property
+    def citation_quality_percentage(self) -> float:
+        return self._score_to_percentage(self.citation_quality, self._MAX_CITATION_QUALITY)
+
+    @pydantic.computed_field
+    @property
+    def explanation_from_citations_percentage(self) -> float:
+        return self._score_to_percentage(
+            self.explanation_from_citations, self._MAX_EXPLANATION_FROM_CITATIONS
         )
 
 def setup_evaluator_prompt(parser):

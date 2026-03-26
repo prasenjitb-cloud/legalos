@@ -4,8 +4,9 @@ Evaluate RAG batch runs using an LLM evaluator.
 Reads a JSONL file produced by promptRunBatch (line 0 = metadata, lines 1+ = per-question
 results with question, retrieved_chunks, output). For each result, invokes the evaluator LLM
 to score factual_existence, factual_faithfulness, query_relevance, legal_precision, clarity,
-citation_quality, and explanation_from_citations, and their total. Writes a single evaluation
-JSON (run_metadata, aggregate_scores, results) to the configured output path.
+citation_quality, and explanation_from_citations, plus computed `total` and `percentage`.
+Writes a single evaluation JSON (run_metadata, aggregate_scores, results) to the configured
+output path.
 """
 import dotenv
 dotenv.load_dotenv()
@@ -16,6 +17,7 @@ import pathlib
 import json
 
 import langchain_groq
+import re
 import langchain_core
 
 import test.promptTester.evaluator.evaluatorPrompt
@@ -82,6 +84,35 @@ def _load_batch_results(path: pathlib.Path):
     return metadata, data
 
 
+
+
+def evaluate_layer1(result: dict) -> dict:
+    """Simple structural evaluation of RAG output before LLM evaluation."""
+
+    output = result.get("output")
+    retrieved_chunks = result.get("retrieved_chunks")
+
+    # ---- explanation detection ----
+    explanation_provided = False
+    citations = []
+
+    if isinstance(output, dict):
+        citations = output.get("citations", []) or []
+        explanation = output.get("explanation")
+        explanation_provided = bool(explanation and str(explanation).strip())
+
+    # ---- Retrieved chunks ----
+    num_chunks = len(re.findall(r"\[DOC\s+\d+\]", retrieved_chunks))
+    
+    # ---- Citations ----
+    num_citations = len(citations)
+
+    return {
+        "explanation_provided": explanation_provided,
+        "num_retrieved_chunks": num_chunks,
+        "num_citations": num_citations,
+    }
+
 # -------------------- MAIN EVALUATOR LOOP --------------------
 
 def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> None:
@@ -112,6 +143,8 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         "citation_quality": 0,
         "explanation_from_citations": 0,
         "total": 0,
+        # Computed field on the RAGEvaluation schema (0-100).
+        "percentage": 0.0,
     }
     evaluated_count = 0
 
@@ -132,6 +165,8 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         facts = result.get("retrieved_chunks", "")
         if isinstance(facts, list):
             facts = "\n".join(str(x) for x in facts)
+
+        layer1 = evaluate_layer1(result)
 
         explanation, citations = _format_model_answer(result.get("output"))
         final_evaluator_prompt = evaluator_prompt.format(
@@ -155,11 +190,36 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
             continue
 
         output = result.get("output")
+        raw = evaluator_result.model_dump()
+
+        def metric(score, max_score):
+            return {
+                "score": score,
+                "percentage": round((score / max_score) * 100, 2)
+            }
+
+
+        layer2 = {
+            "factual_existence": metric(raw["factual_existence"], 1),
+            "factual_faithfulness": metric(raw["factual_faithfulness"], 5),
+            "query_relevance": metric(raw["query_relevance"], 5),
+            "legal_precision": metric(raw["legal_precision"], 4),
+            "clarity": metric(raw["clarity"], 3),
+            "citation_quality": metric(raw["citation_quality"], 5),
+            "explanation_from_citations": metric(raw["explanation_from_citations"], 5),
+            "total": {
+                "score": raw["total"],
+                "percentage": raw["percentage"]
+            }
+        }
+        
+
         result_entry = {
             "question_id": result["question_id"],
             "question": result["question"],
             "rag_output": output,
-            "evaluation": evaluator_result.model_dump(),
+            "layer1": layer1,
+            "layer2": layer2,
         }
         all_results.append(result_entry)
 
@@ -167,7 +227,8 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         print(
             f"[{result['question_id']}] run complete | "
             f"answer_found={answer_found} | "
-            f"score={evaluator_result.total}"
+            f"score={evaluator_result.total} | "
+            f"percentage={round(evaluator_result.percentage, 2)}"
         )
 
         for k in score_sums:
@@ -191,6 +252,7 @@ def evaluate_rag(batch_result_file: pathlib.Path, outputpath: pathlib.Path) -> N
         "citation_quality": 5,
         "explanation_from_citations": 5,
         "total": 28,
+        "percentage": 100.0,
     }
 
     # Single JSON: run_metadata, aggregate_scores, per-question results
