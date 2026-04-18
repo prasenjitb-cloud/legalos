@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`; not run standalone.
+**Local helper package** for the RAG pipeline: config validation, query rewriting, multi-query retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`; not run standalone.
 
 ---
 
@@ -11,6 +11,7 @@ legalos_rag/
 ├── README.md
 ├── __init__.py
 ├── runRag.py
+├── queryRewriter.py
 └── prompt/
     ├── promptSchema.py
     └── prompts.py
@@ -22,7 +23,7 @@ legalos_rag/
 
 ### `__init__.py`
 
-- **_setup_slm(model_name)** — Build Ollama ChatOllama instance with the specified model name.
+- **_setup_slm(model_name)** — Build Ollama ChatOllama instance with the specified model name (temperature `0.3`).
 - **ensure_requirements(config)** — Validate config and return `(db_path, promptTemplate, slm, model_name, logging)`. Required config keys:
   - `vectordbpath` — path to the Qdrant vector DB.
   - `promptTemplate` — object with a `"text"` key holding the full prompt template string.
@@ -43,16 +44,27 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
   - Injects `format_instructions` from the output parser.
   - Returns a LangChain `PromptTemplate` with `input_variables=["facts", "question"]` and `partial_variables={"format_instructions": ...}`.
 
+### `queryRewriter.py`
+
+- **rewrite_and_expand(query, slm)** — Uses the same Ollama model as the main SLM (temperature `0.3`) with a small legal-terminology prompt and `PydanticOutputParser` to produce two short search strings: **`rewritten`** (main issue in statutory-style language) and **`variant`** (related angle such as remedy or procedure). The model is instructed not to name specific Acts. Returns `[original, rewritten, variant]` on success, or `[original]` if parsing or the SLM fails (retrieval still runs on the user query only).
+
 ### `runRag.py`
 
 Central RAG logic:
 
-- **getFacts(q, db_path)** — Setup Qdrant vectorstore (HuggingFace embeddings), retrieve top-k chunks for the query, return them formatted as a single string for the prompt.
-- **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and question, invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
+- **getFacts(q, db_path)** — Setup Qdrant vectorstore (HuggingFace embeddings), retrieve top-k chunks for a single query string, return them formatted as a single string for the prompt. Still available for single-query retrieval.
+- **getFactsMulti(queries, db_path)** — For each query string, runs `similarity_search_with_score` with `k=3`, deduplicates hits by `(pdf_number, page)` keeping the best score per chunk, sorts by score, and returns up to **5** chunks formatted like `getFacts`. Used by `chatbot.main.run_rag` after `rewrite_and_expand`.
+- **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and **the original user question** (not the rewrite), invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
 - **log_rag_run(query, final_prompt, output, model, log_file, exclude_model_name, exclude_prompt)** — Append one RAG run as a JSONL line to the given log file. Called from `run_rag_loop()` in `chatbot/main.py` after each single RAG run (not from `run_rag`, which does not log).
 
 ---
 
+
+## Retrieval workflow (before the prompt)
+
+1. **rewrite_and_expand** — Turn the user question into one or three search strings (original plus optional legal phrasings).
+2. **getFactsMulti** — Retrieve and merge evidence from all strings with deduplication by document page.
+3. **invoker** — Answer using the original question text and the merged facts (see below).
 
 ## Prompt workflow
 

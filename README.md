@@ -4,7 +4,7 @@
 
 India’s legal ecosystem is fragmented: citizens struggle to find the right lawyers or even basic procedural information, while lawyers lack simple tools to organize case material and surface insights from their own documents. Legalos will be a legal operating system for this ecosystem by solving both sides of this problem.
 
-Right now, this repo focuses on a **RAG-based legal chatbot** that will let users ask natural-language questions over Indian acts and get grounded, citation-rich answers from an offline vector database.
+Right now, this repo focuses on a **RAG-based legal chatbot** that will let users ask natural-language questions over Indian acts and get grounded, citation-rich answers from an offline vector database. Retrieval uses a **query rewriter**: informal questions are expanded into short legal search phrases so the vector store is queried from multiple angles; chunks are merged and deduplicated before generation.
 
 In its full form, Legalos will have three pillars:
 
@@ -50,6 +50,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── README.md
 │       ├── __init__.py
 │       ├── runRag.py
+│       ├── queryRewriter.py   # Legal phrasing + variant queries for retrieval
 │       └── prompt
 │           ├── prompts.py
 │           └── promptSchema.py
@@ -70,8 +71,10 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 ├── benchmarking                 # Benchmark scores from evaluation results
 │   ├── README.md
 │   ├── calculateBenchmarkScore.py
-│   ├── config/                  # Configs (batchResultFile, questionSetFile, outputpath)
-│   └── benchmarks/              # Benchmark reports (section + overall scores)
+│   └── benchmarks/
+│       ├── config/              # Configs (batchResultFile, questionSetFile, outputpath)
+│       ├── b1                   # Example benchmark report JSON
+│       └── b2                   # Example benchmark report JSON
 │
 └── requirements.txt
 ```
@@ -106,9 +109,9 @@ Before running **Legalos**, make sure you have:
 >   See `test/promptTester/README.md` for details on the RAGEvaluation schema, evaluator prompt, and evaluation JSON format.
 > - **Calculate benchmark score** (aggregate evaluation results by section):
 >   ```bash
->   python -m benchmarking.calculateBenchmarkScore --config benchmarking/config/b1.json
+>   python -m benchmarking.calculateBenchmarkScore --config benchmarking/benchmarks/config/b1.json
 >   ```
->   See `test/promptTester/README.md` for the evaluator and `benchmarking/README.md` for benchmark scoring.
+>   Additional benchmark configs live under `benchmarking/benchmarks/config/` (for example `b2.json`). See `test/promptTester/README.md` for the evaluator and `benchmarking/README.md` for benchmark scoring.
 >
 
 ---

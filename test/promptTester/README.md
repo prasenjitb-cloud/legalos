@@ -4,7 +4,7 @@ Batch-run a **prompt template** over a **question set** using the LegalOS RAG pi
 
 ## What it does
 
-For each question in the question set, promptTester calls **`chatbot.main.run_rag()`** and appends the result to the run file immediately (no in-memory accumulation). When no chunks are retrieved, `run_rag` returns `(None, [], None)` and output is recorded as `null`.
+For each question in the question set, promptTester calls **`chatbot.main.run_rag()`** and appends the result to the run file immediately (no in-memory accumulation). When no chunks are retrieved, `run_rag` returns `(None, [], None, queries)` where `queries` is the list from query rewriting (usually `[original]` or `[original, rewritten, variant]`); output is recorded as `null`.
 
 So: **one config → one prompt template + one question set → one JSONL run file** containing all question–result pairs.
 
@@ -18,6 +18,7 @@ Each run file is JSONL (one JSON object per line):
 - **Line 1:** Run metadata with `run_id`, `model`, `vectordbpath`, `questionsetfile`, `promptTemplate`, `type: "metadata"`.
 - **Lines 2+:** One object per question with:
   - `question_id`, `question`
+  - `rewritten_queries`: list of strings passed to retrieval (original query plus SLM-generated search variants when rewriting succeeds)
   - `retrieved_chunks` (chunks used for that question)
   - `output`: the structured `LegalAnswer` (e.g. `answer_found`, `explanation`, `citations`), or `null` when no chunks were retrieved.
 
@@ -109,7 +110,7 @@ The evaluator script:
 
 - Loads a run JSONL file produced by `promptRunBatch`:
   - First line: run metadata.
-  - Subsequent lines: one result per question (`question`, `retrieved_chunks`, `output`).
+  - Subsequent lines: one result per question (`question`, `rewritten_queries`, `retrieved_chunks`, `output`).
 - Builds the evaluator LLM and wiring:
   - `evaluator_parser = PydanticOutputParser(pydantic_object=RAGEvaluation)`
   - `evaluator_prompt = setup_evaluator_prompt(evaluator_parser)`
