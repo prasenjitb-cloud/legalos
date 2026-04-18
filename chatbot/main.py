@@ -3,6 +3,7 @@ import json
 import argparse
 
 import chatbot.legalos_rag.runRag
+import chatbot.legalos_rag.queryRewriter
 import pathlib
 import chatbot.legalos_rag
 
@@ -14,7 +15,7 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
 
     Retrieves top-k document chunks from the vector database for the given query,
     runs the RAG invoker (generate + parse), and returns the structured result,
-    the retrieved chunks, and the final prompt used. Does not log or interact with the user.
+    the retrieved chunks, the final prompt used, and the rewritten query variants.
 
     Args:
         query: The user's legal question.
@@ -23,26 +24,29 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         slm: Small Language Model instance.
 
     Returns:
-        (result, retrieved_chunks, final_prompt) when chunks were found and the invoker ran.
-        (None, [], None) when no relevant chunks were retrieved.
+        (result, retrieved_chunks, final_prompt, queries) when chunks were found.
+        (None, [], None, queries) when no relevant chunks were retrieved.
     """
 
-    # Retrieve relevant chunks from the vector database
-    retrieved_chunks = chatbot.legalos_rag.runRag.getFacts(
-        q=query,
+    # Step 1: rewrite query into legal terms and generate alternative phrasing
+    queries = chatbot.legalos_rag.queryRewriter.rewrite_and_expand(query, slm)
+
+    # Step 2: retrieve chunks for all query variants (deduplicated by pdf_number + page)
+    retrieved_chunks = chatbot.legalos_rag.runRag.getFactsMulti(
+        queries=queries,
         db_path=db_path,
     )
     if not retrieved_chunks:
-        return (None, [], None)
+        return (None, [], None, queries)
 
-    # Generate RAG answer using the RAG invoker
+    # Step 3: generate answer using the original query (more natural for the SLM)
     result, final_prompt = chatbot.legalos_rag.runRag.invoker(
         slm,
         retrieved_chunks,
         query,
         prompt_template,
     )
-    return (result, retrieved_chunks, final_prompt)
+    return (result, retrieved_chunks, final_prompt, queries)
 
 
 # -------------------- INTERACTIVE QUESTIONING --------------------
@@ -76,7 +80,7 @@ def run_rag_loop(
             print("Empty question. Try again.")
             continue
 
-        result, _, final_prompt = run_rag(query, db_path, prompt_template, slm)
+        result, _, final_prompt, _ = run_rag(query, db_path, prompt_template, slm)
 
         if result is None:
             print("\nAnswer:\n Not found in the documents")

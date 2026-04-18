@@ -71,12 +71,13 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
                     print("Empty question. Skipping.")
                     continue
 
-                result, retrieved_chunks, _ = chatbot.main.run_rag(question_text, db_path, promptTemplate, slm)
+                result, retrieved_chunks, _, rewritten_queries = chatbot.main.run_rag(question_text, db_path, promptTemplate, slm)
 
                 # Append result line (flush so partial run is persisted if interrupted)
                 record = {
                     "question_id": qid,
                     "question": question_text,
+                    "rewritten_queries": rewritten_queries,
                     "retrieved_chunks": retrieved_chunks if retrieved_chunks else "",
                     "output": result.model_dump() if result else None,
                 }
