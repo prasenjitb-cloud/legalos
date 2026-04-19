@@ -22,8 +22,9 @@ The benchmark aggregates LLM evaluation results across a question set and comput
 ## Usage
 
 ```bash
-# From legalos root
+# From legalos root (pick a config under benchmarks/config/)
 python -m benchmarking.calculateBenchmarkScore --config benchmarking/benchmarks/config/b1.json
+python -m benchmarking.calculateBenchmarkScore --config benchmarking/benchmarks/config/b2.json
 ```
 
 ## Config Format
@@ -91,6 +92,8 @@ benchmarking/
 ├── calculateBenchmarkScore.py
 └── benchmarks/
     ├── b1
+    ├── b2
     └── config/
-        └── b1.json
+        ├── b1.json
+        └── b2.json
 ```

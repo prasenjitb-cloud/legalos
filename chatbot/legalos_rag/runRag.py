@@ -101,6 +101,44 @@ def getFacts(q: str, db_path: str):
     return _format_docs(retriever.invoke(q))
 
 
+_K_PER_QUERY = 3
+_MAX_CHUNKS = 5
+
+
+def getFactsMulti(queries: list, db_path: str) -> str:
+    """Retrieve chunks for multiple query variants, deduplicate by best score, and return top-K.
+
+    Runs each query through similarity_search_with_score (k=3 each), deduplicates by
+    (pdf_number, page) keeping the highest score for each chunk, sorts by descending
+    relevance, and returns at most _MAX_CHUNKS formatted as [DOC n] blocks.
+
+    Args:
+        queries: List of query strings (original + rewritten + variants from queryRewriter).
+        db_path: Path to the Qdrant vector database directory.
+
+    Returns:
+        str: Formatted string of [DOC n] blocks (text + source metadata) for use in the RAG prompt.
+    """
+    vectorstore = _setup_vectorstore(
+        db_path=db_path,
+        collection_name=COLLECTION_NAME,
+    )
+
+    best: dict[tuple, tuple[langchain_core.documents.Document, float]] = {}
+
+    for q in queries:
+        results = vectorstore.similarity_search_with_score(q, k=_K_PER_QUERY)
+        for doc, score in results:
+            key = (doc.metadata.get("pdf_number"), doc.metadata.get("page"))
+            if key not in best or score > best[key][1]:
+                best[key] = (doc, score)
+
+    ranked = sorted(best.values(), key=lambda pair: pair[1], reverse=True)
+    top_docs = [doc for doc, _score in ranked[:_MAX_CHUNKS]]
+
+    return _format_docs(top_docs)
+
+
 def invoker(
     slm,
     retrievedChunks,  # Formatted string from getFacts, or list[Document] (prompt.format accepts both)

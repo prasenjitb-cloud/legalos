@@ -1,0 +1,62 @@
+{
+  "evaluator_file": "test/promptTester/evaluator/evaluationResults/evaluation_20260418_211224_20260418_212826.json",
+  "question_set_file": "test/promptTester/questionSet.json",
+  "benchmark_avg_score": 12.14,
+  "benchmark_avg_percentage": 43.37,
+  "sections": {
+    "POSH": {
+      "avg_score": 18.0,
+      "avg_percentage": 64.29,
+      "support_metrics": {
+        "explanation_provided_rate": 100.0,
+        "citation_rate": 50.0,
+        "avg_retrieved_chunks": 4.0
+      }
+    },
+    "HMA": {
+      "avg_score": 14.0,
+      "avg_percentage": 50.0,
+      "support_metrics": {
+        "explanation_provided_rate": 100.0,
+        "citation_rate": 100.0,
+        "avg_retrieved_chunks": 5.0
+      }
+    },
+    "MVA": {
+      "avg_score": 10.67,
+      "avg_percentage": 38.1,
+      "support_metrics": {
+        "explanation_provided_rate": 100.0,
+        "citation_rate": 100.0,
+        "avg_retrieved_chunks": 5.0
+      }
+    },
+    "JJA": {
+      "avg_score": 11.5,
+      "avg_percentage": 41.07,
+      "support_metrics": {
+        "explanation_provided_rate": 100.0,
+        "citation_rate": 100.0,
+        "avg_retrieved_chunks": 5.0
+      }
+    },
+    "CGST": {
+      "avg_score": 9.0,
+      "avg_percentage": 32.14,
+      "support_metrics": {
+        "explanation_provided_rate": 50.0,
+        "citation_rate": 0.0,
+        "avg_retrieved_chunks": 5.0
+      }
+    },
+    "Consumer Protection Act": {
+      "avg_score": 9.5,
+      "avg_percentage": 33.93,
+      "support_metrics": {
+        "explanation_provided_rate": 50.0,
+        "citation_rate": 0.0,
+        "avg_retrieved_chunks": 5.0
+      }
+    }
+  }
+}
