@@ -20,8 +20,8 @@ def _setup_slm(model_name: str):
         langchain_ollama.ChatOllama: Configured SLM instance ready for use
     """
     return langchain_ollama.ChatOllama(
-        model= model_name,
-        temperature=1,
+        model=model_name,
+        temperature=0.3,
     )
 
 

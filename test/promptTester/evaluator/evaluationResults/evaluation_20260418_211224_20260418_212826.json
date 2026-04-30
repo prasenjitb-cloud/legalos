@@ -1,0 +1,796 @@
+{
+  "run_metadata": {
+    "run_id": "20260418_211224",
+    "slm_model": "qwen2.5:3b-instruct",
+    "evaluator_model": "llama-3.3-70b-versatile",
+    "num_questions": 14,
+    "num_evaluated": 14,
+    "max_scores": {
+      "factual_existence": 1,
+      "factual_faithfulness": 5,
+      "query_relevance": 5,
+      "legal_precision": 4,
+      "clarity": 3,
+      "citation_quality": 5,
+      "explanation_from_citations": 5,
+      "total": 28,
+      "percentage": 100.0
+    }
+  },
+  "aggregate_scores": {
+    "factual_existence_avg": 0.43,
+    "factual_faithfulness_avg": 3.43,
+    "query_relevance_avg": 1.64,
+    "legal_precision_avg": 1.5,
+    "clarity_avg": 2.0,
+    "citation_quality_avg": 1.64,
+    "explanation_from_citations_avg": 1.5,
+    "total_avg": 12.14,
+    "percentage_avg": 43.37
+  },
+  "results": [
+    {
+      "question_id": 1,
+      "question": "My boss keeps sending me personal messages late at night. Does this count as sexual harassment? What is my recourse?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The text does not directly define what constitutes sexual harassment or provide specific protections for employees regarding unwelcome messages sent late at night. The provided documents do not contain a definition of sexual harassment.",
+        "citations": []
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 4,
+        "num_citations": 0
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 1,
+          "percentage": 20.0
+        },
+        "legal_precision": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "clarity": {
+          "score": 2,
+          "percentage": 66.67
+        },
+        "citation_quality": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "explanation_from_citations": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "total": {
+          "score": 8,
+          "percentage": 28.57142857142857
+        }
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "I want to file a complaint, but my company doesn't have an Internal Committee (IC). What do I do?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "If the employer fails to constitute an Internal Complaints Committee as required by section 4, they can be penalized under section 26 of the Act.",
+        "citations": [
+          {
+            "pdf_number": 474,
+            "page": 11,
+            "file_name": "A2013-14.pdf",
+            "quote": "(1) Where the employer fails to—\n(a) constitute an Internal Committee under sub-section (1) of section 4;"
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 4,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "legal_precision": {
+          "score": 4,
+          "percentage": 100.0
+        },
+        "clarity": {
+          "score": 3,
+          "percentage": 100.0
+        },
+        "citation_quality": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "explanation_from_citations": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "total": {
+          "score": 28,
+          "percentage": 100.0
+        }
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "My husband has abandoned me. I have not been in contact with him for over 5 years. Can I remarry?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "A Hindu wife is not entitled to separate residence and maintenance from her husband if he has abandoned her without reasonable cause and without her consent or against her wish (Section 4 of the Act).",
+        "citations": [
+          {
+            "pdf_number": 531,
+            "page": 6,
+            "file_name": "AA1956____78.pdf",
+            "quote": "A Hindu wife shall not be entitled to separate residence and maintenance from her husband if he is guilty of desertion, that is to say, of abandoning her without reasonable cause and without her consent or against her wish, or of wilfully neglecting her."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 1,
+          "percentage": 33.33
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 11,
+          "percentage": 39.285714285714285
+        }
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "My wife and I both want a divorce. I want to ensure I get custody of my child.",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The text refers to the jurisdiction of Matrimonial Courts, which can include matters such as alimony and maintenance, custody of children, and other proceedings related to divorce. The specific section number is not provided in the given texts.",
+        "citations": [
+          {
+            "pdf_number": 643,
+            "page": 6,
+            "file_name": "a1936_____3.pdf",
+            "quote": "The Judge of the principal Court of original civil jurisdiction at such place shall be the Judge of such Matrimonial Court, and in the trial of cases under this Act he shall be aided by five delegates, except in regard to—(a) interlocutory applications and proceedings; (b) alimony and maintenance, both permanent as well as pendente lite; (c) custody, maintenance and education of children; and (d) all matters and proceedings other than the regular hearing of cases."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 4,
+          "percentage": 80.0
+        },
+        "query_relevance": {
+          "score": 3,
+          "percentage": 60.0
+        },
+        "legal_precision": {
+          "score": 3,
+          "percentage": 75.0
+        },
+        "clarity": {
+          "score": 2,
+          "percentage": 66.67
+        },
+        "citation_quality": {
+          "score": 4,
+          "percentage": 80.0
+        },
+        "explanation_from_citations": {
+          "score": 3,
+          "percentage": 60.0
+        },
+        "total": {
+          "score": 20,
+          "percentage": 71.42857142857143
+        }
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "My partner and I got married in Delhi and later moved to the USA, where we separated and got a divorce after 3 years of marriage. Now I want to remarry in India but my wife has filed a suit against me for remarriage.",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": "The Hindu Marriage Act, 1955",
+        "section": "27A",
+        "explanation": "Section 27A of the Hindu Marriage Act, 1955 allows for alternative relief in divorce proceedings and provides that a wife may be entitled to separate residence and maintenance from her husband if she is unchaste or has ceased to be a Hindu by conversion to another religion.",
+        "citations": [
+          {
+            "pdf_number": 249,
+            "page": 1,
+            "file_name": "A195443.pdf",
+            "quote": "27A. Alternative relief in divorce proceedings.—(1) Notwithstanding anything contained in any other provision of this Act, the Court may grant to a wife such alternative relief as it thinks fit if she is unchaste or has ceased to be a Hindu by conversion to another religion."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 1,
+          "percentage": 33.33
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 11,
+          "percentage": 39.285714285714285
+        }
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "I met with an accident purely because of a pothole. Can I sue the municipal corporation for damages?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The Act does not explicitly address suing a municipal corporation for damages due to potholes or other road defects. However, it includes provisions related to the regulation and maintenance of highways that may be relevant.",
+        "citations": [
+          {
+            "pdf_number": 438,
+            "page": 11,
+            "file_name": "A2003-13.pdf",
+            "quote": "If any person, in contravention of sub -section (1), makes any construction or carries out any other work, the Highway Administration may, at its own expenses, cause such construction or other work to be removed from the Highway and restore the Highway in the condition as it was immediately before giving permission for such construction or other work under sub -section (3) and such expenses together with fifteen per cent. thereof as additional charges and fine imposed by the Highway Administration taken"
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 2,
+          "percentage": 66.67
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 12,
+          "percentage": 42.857142857142854
+        }
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "The insurance company rejected my accident claim because my license was expired for two days. Is there a way to contest this?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "A person who is convicted of an offence punishable under section 184 may have their driving license disqualified until they pass a test to the satisfaction of the licensing authority, even if no appeal would lie against the conviction as a result of which such order was made. The Court to which an appeal would ordinarily lie from any conviction of an offence of the nature specified in sub-section (1) may set aside or vary any order of disqualification made under that sub-section.",
+        "citations": [
+          {
+            "pdf_number": 807,
+            "page": 22,
+            "file_name": "aA1988-59.pdf",
+            "quote": "(4) A Court ordering the disqualification of a person convicted of an offence punishable under section 184 may direct that such person shall, whether he has previously passed the test of competence to drive as referred to in sub-section (3) of section 9 or not, remain disqualified until he has subsequent to the making of the order of disqualification passed that test to the satisfaction of the licensing authority."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 1,
+          "percentage": 33.33
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 11,
+          "percentage": 39.285714285714285
+        }
+      }
+    },
+    {
+      "question_id": 8,
+      "question": "I sold my car 6 months ago, but the new owner hasn't transferred the RC. Am I still liable for his traffic fines?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "No entry regarding the transfer of ownership of any motor vehicle which is held under the said agreement shall be made in the certificate of registration except with the written consent of the person whose name has been specified in the certificate of registration as the person with whom the registered owner has entered into the said agreement.",
+        "citations": [
+          {
+            "pdf_number": 807,
+            "page": 35,
+            "file_name": "aA1988-59.pdf",
+            "quote": "No entry regarding the transfer of ownership of any motor vehicle which is held under the said agreement shall be made in the certificate of registration except with the written consent of the person whose name has been specified in the certificate of registration as the person with whom the registered owner has entered into the said agreement."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 1,
+          "percentage": 20.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 1,
+          "percentage": 33.33
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 1,
+          "percentage": 20.0
+        },
+        "total": {
+          "score": 9,
+          "percentage": 32.142857142857146
+        }
+      }
+    },
+    {
+      "question_id": 9,
+      "question": "We want to adopt a child from a relative. What is the legal process to make sure the adoption is valid?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The legal process for inter-country relative adoption, as outlined in Section 59 of the Adoption Act, involves several steps. The first step is to prepare a home study report by an authorised foreign adoption agency or Central Authority and upon finding the prospective adoptive parents eligible, they will sponsor their application to the Authority for adopting a child from India, following the adoption regulations framed by the Authority.",
+        "citations": [
+          {
+            "pdf_number": 756,
+            "page": 31,
+            "file_name": "a2016-2.pdf",
+            "quote": "(1) If an orphan or abandoned or surrendered child could not be placed with an Indian or non-resident Indian prospective adoptive parents, the procedure for inter-country adoption of a relative will apply. The authorised foreign adoption agency, or Central Authority, or a concerned Government department, as the case may be, shall prepare the home study report of such prospective adoptive parents and upon finding them eligible, will sponsor their application to the Authority for adoption of a child from India, in the manner as provided in the adoption regulations framed by the Authority."
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 1,
+          "percentage": 33.33
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 11,
+          "percentage": 39.285714285714285
+        }
+      }
+    },
+    {
+      "question_id": 10,
+      "question": "I am a teacher and a student told me about abuse at home. Am I legally required to report this?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "Under the provisions of the Child Welfare Act, if a person who is in a position of trust or authority over a child commits sexual assault on the child, they may be required to report it. This includes teachers and other individuals providing services to children.",
+        "citations": [
+          {
+            "pdf_number": 538,
+            "page": 6,
+            "file_name": "AA2012-32.pdf",
+            "quote": "(p) Whoever, being in a position of trust or authority of a child, commits sexual assault on the child in an institution or home of the child or anywhere else;"
+          }
+        ]
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 1
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "factual_faithfulness": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "query_relevance": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "legal_precision": {
+          "score": 2,
+          "percentage": 50.0
+        },
+        "clarity": {
+          "score": 2,
+          "percentage": 66.67
+        },
+        "citation_quality": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "explanation_from_citations": {
+          "score": 2,
+          "percentage": 40.0
+        },
+        "total": {
+          "score": 12,
+          "percentage": 42.857142857142854
+        }
+      }
+    },
+    {
+      "question_id": 11,
+      "question": "I am a freelancer earning ₹25 Lakhs a year from US clients. Do I need to register for GST?",
+      "rag_output": {
+        "answer_found": false,
+        "act_name": null,
+        "section": null,
+        "explanation": null,
+        "citations": []
+      },
+      "layer1": {
+        "explanation_provided": false,
+        "num_retrieved_chunks": 5,
+        "num_citations": 0
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "legal_precision": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "clarity": {
+          "score": 3,
+          "percentage": 100.0
+        },
+        "citation_quality": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "explanation_from_citations": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "total": {
+          "score": 9,
+          "percentage": 32.142857142857146
+        }
+      }
+    },
+    {
+      "question_id": 12,
+      "question": "I received a Show Cause Notice for a mismatch in GSTR-3B and GSTR-2A. How do I reply to this?",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The Act does not provide specific instructions on how to reply to a Show Cause Notice for a mismatch in GSTR-3B and GSTR-2A. The text provided is related to appeals under the Income-tax Act, but it does not cover Show Cause Notices.",
+        "citations": []
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 0
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "legal_precision": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "clarity": {
+          "score": 3,
+          "percentage": 100.0
+        },
+        "citation_quality": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "explanation_from_citations": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "total": {
+          "score": 9,
+          "percentage": 32.142857142857146
+        }
+      }
+    },
+    {
+      "question_id": 13,
+      "question": "I received a fake or damaged product, and the seller is refusing to pick it up or refund my money.",
+      "rag_output": {
+        "answer_found": true,
+        "act_name": null,
+        "section": null,
+        "explanation": "The text does not explicitly define 'consumer' or provide specific provisions related to a consumer receiving a fake or damaged product and the seller's refusal to pick it up or refund money.",
+        "citations": []
+      },
+      "layer1": {
+        "explanation_provided": true,
+        "num_retrieved_chunks": 5,
+        "num_citations": 0
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 1,
+          "percentage": 20.0
+        },
+        "legal_precision": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "clarity": {
+          "score": 3,
+          "percentage": 100.0
+        },
+        "citation_quality": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "explanation_from_citations": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "total": {
+          "score": 10,
+          "percentage": 35.714285714285715
+        }
+      }
+    },
+    {
+      "question_id": 14,
+      "question": "I joined a course because the advertisement said 'Guaranteed Placement,' but now they say it was just a marketing slogan. Can I sue for my fees?",
+      "rag_output": {
+        "answer_found": false,
+        "act_name": null,
+        "section": null,
+        "explanation": null,
+        "citations": []
+      },
+      "layer1": {
+        "explanation_provided": false,
+        "num_retrieved_chunks": 5,
+        "num_citations": 0
+      },
+      "layer2": {
+        "factual_existence": {
+          "score": 1,
+          "percentage": 100.0
+        },
+        "factual_faithfulness": {
+          "score": 5,
+          "percentage": 100.0
+        },
+        "query_relevance": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "legal_precision": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "clarity": {
+          "score": 3,
+          "percentage": 100.0
+        },
+        "citation_quality": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "explanation_from_citations": {
+          "score": 0,
+          "percentage": 0.0
+        },
+        "total": {
+          "score": 9,
+          "percentage": 32.142857142857146
+        }
+      }
+    }
+  ]
+}
