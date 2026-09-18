@@ -22,10 +22,12 @@ def build_rag_graph(db_path: str, prompt_template: str, slm):
     """Compile the rewrite -> retrieve -> generate workflow."""
 
     def rewrite_query(state: RAGState) -> dict:
+        # Create legal search variants from the user's question.
         queries = queryRewriter.rewrite_and_expand(state["query"], slm)
         return {"rewritten_queries": queries}
 
     def retrieve_chunks(state: RAGState) -> dict:
+        # Retrieve context using all query variants.
         chunks = runRag.getFactsMulti(
             queries=state["rewritten_queries"],
             db_path=db_path,
@@ -33,6 +35,7 @@ def build_rag_graph(db_path: str, prompt_template: str, slm):
         return {"retrieved_chunks": chunks}
 
     def generate_answer(state: RAGState) -> dict:
+        # Generate only when retrieval found context.
         chunks = state.get("retrieved_chunks", "")
         if not chunks:
             return {
@@ -51,6 +54,7 @@ def build_rag_graph(db_path: str, prompt_template: str, slm):
             "final_prompt": final_prompt,
         }
 
+    # Keep the first graph linear. Routing will be added later.
     builder = StateGraph(RAGState)
     builder.add_node("rewrite", rewrite_query)
     builder.add_node("retrieve", retrieve_chunks)

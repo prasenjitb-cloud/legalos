@@ -61,7 +61,11 @@ Central RAG logic:
 ### `workflow.py`
 
 - **RAGState** — Typed shared state containing the query, rewrites, retrieved chunks, result, and final prompt.
-- **build_rag_graph(db_path, prompt_template, slm)** — Compiles the behavior-preserving **rewrite → retrieve → generate** `StateGraph`. Callers can reuse the compiled graph across many questions.
+- **build_rag_graph(db_path, prompt_template, slm)** — Builds the **rewrite → retrieve → generate** graph. Interactive and batch runs compile it once and reuse it for every question.
+
+The state carries the output of one node into the next. This keeps each node focused on one task and avoids passing many separate values between functions.
+
+The graph is deliberately linear in this version. A future query-classifier node will decide which retrieval path a question needs. Direct questions can take a short path, while scenario-based or multi-issue questions can use more specialized processing.
 
 ---
 
@@ -72,7 +76,7 @@ Central RAG logic:
 2. **getFactsMulti** — Retrieve and merge evidence from all strings with deduplication by document page.
 3. **invoker** — Answer using the original question text and retrieved chunks.
 
-The compiled graph in `workflow.py` orchestrates these three steps.
+The compiled graph in `workflow.py` connects these steps. The existing rewrite, retrieval, and generation functions are reused without changing their behavior.
 
 ## Prompt workflow
 

@@ -6,6 +6,8 @@ India’s legal ecosystem is fragmented: citizens struggle to find the right law
 
 Right now, this repo focuses on a **RAG-based legal chatbot** that will let users ask natural-language questions over Indian acts and get grounded, citation-rich answers from an offline vector database. Retrieval uses a **query rewriter**: informal questions are expanded into short legal search phrases so the vector store is queried from multiple angles; chunks are merged and deduplicated before generation.
 
+The RAG pipeline now runs as a small LangGraph workflow: `rewrite → retrieve → generate`. The flow is intentionally linear today. This gives us a clear base for adding a query classifier later, when direct, scenario-based, and multi-issue questions will use different retrieval paths.
+
 In its full form, Legalos will have three pillars:
 
 - **Client-facing legal assistant**: A chatbot that will help citizens understand procedures, rights, and basic legal concepts, and will guide them toward the right type of legal help.

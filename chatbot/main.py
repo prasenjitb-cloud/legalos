@@ -35,6 +35,7 @@ def run_rag(
         (None, [], None, queries) when no relevant chunks were retrieved.
     """
 
+    # Direct callers may pass a graph that is already compiled.
     graph = rag_graph or chatbot.legalos_rag.workflow.build_rag_graph(
         db_path=str(db_path),
         prompt_template=prompt_template,
@@ -71,6 +72,7 @@ def run_rag_loop(
     The graph is compiled once before entering the loop.
     """
 
+    # Reuse one graph for the full interactive session.
     graph = chatbot.legalos_rag.workflow.build_rag_graph(
         db_path=str(db_path),
         prompt_template=prompt_template,

@@ -50,6 +50,7 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
     run_id = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d_%H%M%S")
     run_filename = f"run_{run_id}.jsonl"
     run_path = os.path.join(outputs_path, run_filename)
+    # Reuse one graph for the full batch.
     rag_graph = chatbot.legalos_rag.workflow.build_rag_graph(
         db_path=str(db_path),
         prompt_template=promptTemplate,
