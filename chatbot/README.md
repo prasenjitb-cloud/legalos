@@ -13,6 +13,7 @@ chatbot/
     ├── __init__.py  
     ├── runRag.py
     ├── queryRewriter.py
+    ├── workflow.py
     └── prompt
         ├── prompts.py
         └── promptSchema.py
@@ -115,7 +116,7 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, SLM, model name, and logging config. Entry point **`main()`** then runs **`run_rag_loop()`**, which loops over user input: for each question it calls **`run_rag()`** in `main.py` — **query rewriting** via `queryRewriter.rewrite_and_expand`, **retrieval** via `runRag.getFactsMulti` over all query strings (deduplicated chunks), then **generation** via `runRag.invoker` with the original user question — then **`runRag.log_rag_run`** to append the run to the log file, and prints the answer. Use **`run_rag(query, db_path, prompt_template, slm)`** directly for a single RAG run without the interactive loop or logging; it returns **`(result, retrieved_chunks, final_prompt, queries)`**.
+The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, SLM, model name, and logging config. Entry point **`main()`** compiles the LangGraph workflow once and then runs **`run_rag_loop()`**. Each question moves through **rewrite → retrieve → generate** nodes before **`runRag.log_rag_run`** appends the run to the log file. Use **`run_rag(query, db_path, prompt_template, slm)`** directly for a single RAG run without the interactive loop or logging; it returns **`(result, retrieved_chunks, final_prompt, queries)`**. Repeated callers may provide a precompiled `rag_graph` to avoid rebuilding it.
 
 **Config (from `legalos/`):**
 

@@ -3,13 +3,19 @@ import json
 import argparse
 
 import chatbot.legalos_rag.runRag
-import chatbot.legalos_rag.queryRewriter
+import chatbot.legalos_rag.workflow
 import pathlib
 import chatbot.legalos_rag
 
 # -------------------- SINGLE RAG INVOCATION --------------------
 
-def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
+def run_rag(
+    query: str,
+    db_path: str,
+    prompt_template: str,
+    slm,
+    rag_graph=None,
+) -> tuple:
     """
     Perform one RAG run: retrieve relevant chunks, generate answer, and return result.
 
@@ -22,31 +28,26 @@ def run_rag(query: str, db_path: str, prompt_template: str, slm) -> tuple:
         db_path: Path to the Qdrant vector database.
         prompt_template: Full prompt template string for the RAG invoker.
         slm: Small Language Model instance.
+        rag_graph: Optional precompiled workflow to reuse across calls.
 
     Returns:
         (result, retrieved_chunks, final_prompt, queries) when chunks were found.
         (None, [], None, queries) when no relevant chunks were retrieved.
     """
 
-    # Step 1: rewrite query into legal terms and generate alternative phrasing
-    queries = chatbot.legalos_rag.queryRewriter.rewrite_and_expand(query, slm)
-
-    # Step 2: retrieve chunks for all query variants (deduplicated by pdf_number + page)
-    retrieved_chunks = chatbot.legalos_rag.runRag.getFactsMulti(
-        queries=queries,
-        db_path=db_path,
+    graph = rag_graph or chatbot.legalos_rag.workflow.build_rag_graph(
+        db_path=str(db_path),
+        prompt_template=prompt_template,
+        slm=slm,
     )
-    if not retrieved_chunks:
-        return (None, [], None, queries)
-
-    # Step 3: generate answer using the original query (more natural for the SLM)
-    result, final_prompt = chatbot.legalos_rag.runRag.invoker(
-        slm,
-        retrieved_chunks,
-        query,
-        prompt_template,
+    state = graph.invoke({"query": query})
+    retrieved_chunks = state.get("retrieved_chunks", "")
+    return (
+        state.get("result"),
+        retrieved_chunks if retrieved_chunks else [],
+        state.get("final_prompt"),
+        state.get("rewritten_queries", [query]),
     )
-    return (result, retrieved_chunks, final_prompt, queries)
 
 
 # -------------------- INTERACTIVE QUESTIONING --------------------
@@ -66,7 +67,15 @@ def run_rag_loop(
     Enters a loop that repeatedly asks for a legal question, runs a single RAG
     invocation via run_rag(), logs the run to the configured JSONL file, and
     displays the answer and citations. Handles exit commands and empty input.
+
+    The graph is compiled once before entering the loop.
     """
+
+    graph = chatbot.legalos_rag.workflow.build_rag_graph(
+        db_path=str(db_path),
+        prompt_template=prompt_template,
+        slm=slm,
+    )
 
     while True:
         query = input("\nAsk a legal question (type 'exit' to quit): ").strip()
@@ -80,7 +89,13 @@ def run_rag_loop(
             print("Empty question. Try again.")
             continue
 
-        result, _, final_prompt, _ = run_rag(query, db_path, prompt_template, slm)
+        result, _, final_prompt, _ = run_rag(
+            query,
+            db_path,
+            prompt_template,
+            slm,
+            rag_graph=graph,
+        )
 
         if result is None:
             print("\nAnswer:\n Not found in the documents")

@@ -4,7 +4,7 @@ Batch-run a **prompt template** over a **question set** using the LegalOS RAG pi
 
 ## What it does
 
-For each question in the question set, promptTester calls **`chatbot.main.run_rag()`** and appends the result to the run file immediately (no in-memory accumulation). When no chunks are retrieved, `run_rag` returns `(None, [], None, queries)` where `queries` is the list from query rewriting (usually `[original]` or `[original, rewritten, variant]`); output is recorded as `null`.
+The batch runner compiles the LangGraph workflow once, then calls **`chatbot.main.run_rag()`** for each question and appends the result immediately (no in-memory accumulation). When no chunks are retrieved, `run_rag` returns `(None, [], None, queries)` where `queries` is the list from query rewriting (usually `[original]` or `[original, rewritten, variant]`); output is recorded as `null`.
 
 So: **one config → one prompt template + one question set → one JSONL run file** containing all question–result pairs.
 

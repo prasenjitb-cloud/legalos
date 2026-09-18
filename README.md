@@ -51,6 +51,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── __init__.py
 │       ├── runRag.py
 │       ├── queryRewriter.py   # Legal phrasing + variant queries for retrieval
+│       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
 │           └── promptSchema.py

@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, query rewriting, multi-query retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`; not run standalone.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`; not run standalone.
 
 ---
 
@@ -12,6 +12,7 @@ legalos_rag/
 ├── __init__.py
 ├── runRag.py
 ├── queryRewriter.py
+├── workflow.py
 └── prompt/
     ├── promptSchema.py
     └── prompts.py
@@ -53,9 +54,14 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 Central RAG logic:
 
 - **getFacts(q, db_path)** — Setup Qdrant vectorstore (HuggingFace embeddings), retrieve top-k chunks for a single query string, return them formatted as a single string for the prompt. Still available for single-query retrieval.
-- **getFactsMulti(queries, db_path)** — For each query string, runs `similarity_search_with_score` with `k=3`, deduplicates hits by `(pdf_number, page)` keeping the best score per chunk, sorts by score, and returns up to **5** chunks formatted like `getFacts`. Used by `chatbot.main.run_rag` after `rewrite_and_expand`.
+- **getFactsMulti(queries, db_path)** — For each query string, runs `similarity_search_with_score` with `k=3`, deduplicates hits by `(pdf_number, page)`, and returns up to **5** formatted chunks.
 - **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and **the original user question** (not the rewrite), invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
 - **log_rag_run(query, final_prompt, output, model, log_file, exclude_model_name, exclude_prompt)** — Append one RAG run as a JSONL line to the given log file. Called from `run_rag_loop()` in `chatbot/main.py` after each single RAG run (not from `run_rag`, which does not log).
+
+### `workflow.py`
+
+- **RAGState** — Typed shared state containing the query, rewrites, retrieved chunks, result, and final prompt.
+- **build_rag_graph(db_path, prompt_template, slm)** — Compiles the behavior-preserving **rewrite → retrieve → generate** `StateGraph`. Callers can reuse the compiled graph across many questions.
 
 ---
 
@@ -64,7 +70,9 @@ Central RAG logic:
 
 1. **rewrite_and_expand** — Turn the user question into one or three search strings (original plus optional legal phrasings).
 2. **getFactsMulti** — Retrieve and merge evidence from all strings with deduplication by document page.
-3. **invoker** — Answer using the original question text and the merged facts (see below).
+3. **invoker** — Answer using the original question text and retrieved chunks.
+
+The compiled graph in `workflow.py` orchestrates these three steps.
 
 ## Prompt workflow
 
@@ -110,16 +118,11 @@ End-to-end prompt formation looks like this:
 
 ```mermaid
 flowchart TD
-    A[Config file: vectordbpath, promptTemplate, model.model_name, logging] --> B[runRag.invoker]
-    B --> C[Create PydanticOutputParser with LegalAnswer schema]
-    C --> D[prompt/prompts.setup_rag_prompt_skeleton]
-    D --> E[Create PromptTemplate from promptTemplate.text]
-    E --> F[prompt.format with facts + question]
-    F --> G[Final prompt string]
-    G --> H[Invoke SLM]
-    H --> I[Parse JSON output to LegalAnswer]
-    I --> J[runRag.log_rag_run to rag_runs.jsonl]
-    J --> K[Return LegalAnswer]
+    A[Compile workflow from config] --> B[Rewrite query]
+    B --> C[Retrieve chunks]
+    C --> D[Build prompt and invoke SLM]
+    D --> E[Parse LegalAnswer]
+    E --> F[Log interactive run]
 ```
 
 ---
