@@ -4,6 +4,7 @@ import json
 import datetime
 import pathlib
 import chatbot.legalos_rag
+import chatbot.legalos_rag.workflow
 import chatbot.main
 # -------------------- LOAD QUESTIONS --------------------
 def _load_questions(path):
@@ -32,8 +33,9 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
     """
     Run the RAG pipeline for every question in the question set and append each result to a JSONL run file.
 
-    For each question: call run_rag(). Append the result to outputpath/run_<run_id>.jsonl immediately.
-    When no chunks are retrieved, run_rag returns (None, [], None); output is recorded as null.
+    Compile the graph once, then call run_rag() for each question and append the result
+    immediately. When no chunks are retrieved, run_rag returns
+    (None, [], None, queries); output is recorded as null.
     Args:
         db_path: Path to the vector DB.
         promptTemplate: Prompt template string for the RAG pipeline.
@@ -48,6 +50,12 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
     run_id = datetime.datetime.now(datetime.UTC).strftime("%Y%m%d_%H%M%S")
     run_filename = f"run_{run_id}.jsonl"
     run_path = os.path.join(outputs_path, run_filename)
+    # Reuse one graph for the full batch.
+    rag_graph = chatbot.legalos_rag.workflow.build_rag_graph(
+        db_path=str(db_path),
+        prompt_template=promptTemplate,
+        slm=slm,
+    )
 
     # write run metadata
     metadata = {
@@ -71,7 +79,13 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
                     print("Empty question. Skipping.")
                     continue
 
-                result, retrieved_chunks, _, rewritten_queries = chatbot.main.run_rag(question_text, db_path, promptTemplate, slm)
+                result, retrieved_chunks, _, rewritten_queries = chatbot.main.run_rag(
+                    question_text,
+                    db_path,
+                    promptTemplate,
+                    slm,
+                    rag_graph=rag_graph,
+                )
 
                 # Append result line (flush so partial run is persisted if interrupted)
                 record = {

@@ -13,6 +13,9 @@ pypdf
 # Core LangChain primitives (PromptTemplate, Document, retriever, etc.)
 langchain-core
 
+# Graph orchestration for the RAG workflow
+langgraph>=1.2,<1.3
+
 # Community loaders like PyPDFLoader
 langchain-community
 

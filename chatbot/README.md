@@ -13,6 +13,7 @@ chatbot/
     ├── __init__.py  
     ├── runRag.py
     ├── queryRewriter.py
+    ├── workflow.py
     └── prompt
         ├── prompts.py
         └── promptSchema.py
@@ -115,7 +116,15 @@ ollama pull qwen2.5:3b-instruct
 
 Once everything is set up:
 
-The RAG CLI reads **one JSON config file** (passed as `--config`). The package `legalos_rag` validates config via **`ensure_requirements(config)`** and returns the vector DB path, prompt template, SLM, model name, and logging config. Entry point **`main()`** then runs **`run_rag_loop()`**, which loops over user input: for each question it calls **`run_rag()`** in `main.py` — **query rewriting** via `queryRewriter.rewrite_and_expand`, **retrieval** via `runRag.getFactsMulti` over all query strings (deduplicated chunks), then **generation** via `runRag.invoker` with the original user question — then **`runRag.log_rag_run`** to append the run to the log file, and prints the answer. Use **`run_rag(query, db_path, prompt_template, slm)`** directly for a single RAG run without the interactive loop or logging; it returns **`(result, retrieved_chunks, final_prompt, queries)`**.
+The RAG CLI reads one JSON config file and builds the LangGraph workflow once. Each question then moves through three nodes:
+
+1. **Rewrite** — create legal search variants from the original question.
+2. **Retrieve** — fetch and merge relevant chunks for those variants.
+3. **Generate** — answer the original question using the retrieved chunks.
+
+The graph is linear for now, so runtime behavior stays the same. Later, a query-classifier node can route direct, scenario-based, and multi-issue questions to different retrieval flows without turning `main.py` into a large set of conditions.
+
+The interactive loop logs each completed answer through `runRag.log_rag_run`. Use **`run_rag(query, db_path, prompt_template, slm)`** directly for a single run without interactive input or logging; it returns **`(result, retrieved_chunks, final_prompt, queries)`**.
 
 **Config (from `legalos/`):**
 
