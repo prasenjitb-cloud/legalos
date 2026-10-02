@@ -1,0 +1,8 @@
+-r ../../../requirements.txt
+-c constraints.txt
+
+# CPU retrieval and structured local model calls
+onnxruntime
+snowballstemmer
+scikit-learn
+ollama

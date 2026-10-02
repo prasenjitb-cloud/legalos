@@ -142,3 +142,7 @@ python -m chatbot.main --config ./config/rag_v1.json
 ## You're all set! ✅
 
 **Ask legal questions. Get answers grounded strictly in law.**
+
+## Optional evidence-recovery POC
+
+See the [POC architecture and setup](legalos_rag/poc_v2/README.md) for a separate entry point using the same configured model, Act-specific source corpora, complete-section retrieval and bounded recovery.

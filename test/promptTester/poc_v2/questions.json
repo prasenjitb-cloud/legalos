@@ -1,0 +1,120 @@
+{
+  "development": [
+    {
+      "id": "q1",
+      "topic": "POSH",
+      "question": "What conduct is included in the definition of sexual harassment under the POSH Act, 2013?",
+      "required_units": [
+        "2(n)"
+      ],
+      "expected": "COVERED",
+      "criteria": "All five forms of unwelcome sexual conduct, physical contact/advances, demand for sexual favours, sexually coloured remarks, pornography, other physical/verbal/non-verbal sexual conduct."
+    },
+    {
+      "id": "q2",
+      "topic": "POSH",
+      "question": "Under the POSH Act, 2013, where can a complaint be made when a workplace has fewer than ten workers, and what is the complaint filing deadline?",
+      "required_units": [
+        "6(1)",
+        "9(1)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Local Committee where no Internal Committee due to fewer than ten workers. Three months from incident or last incident in series. Extension at most three further months for preventing circumstances, reasons recorded in writing."
+    },
+    {
+      "id": "q3",
+      "topic": "HMA",
+      "question": "Under Section 13 of the Hindu Marriage Act, how long must desertion continue before it is a ground for divorce?",
+      "required_units": [
+        "13(1)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Continuous desertion at least two years immediately before petition. Preserve legal context; no six-month or one-year substitution."
+    },
+    {
+      "id": "q4",
+      "topic": "HMA",
+      "question": "Under the Hindu Marriage Act, what are the conditions for divorce by mutual consent, and what does the Act provide about custody of minor children?",
+      "required_units": [
+        "13B(1)",
+        "13B(2)",
+        "26"
+      ],
+      "expected": "COVERED",
+      "criteria": "Joint petition, living separately at least one year, unable to live together, mutual agreement. Joint motion six to eighteen months after petition, not withdrawn, court satisfaction after hearing/inquiry. Minor custody, maintenance, education; wishes where possible; interim/decree/post-decree and variation. Do not present 60-day maintenance/education endeavour as absolute custody deadline."
+    },
+    {
+      "id": "q5",
+      "topic": "MVA",
+      "question": "Under the Motor Vehicles Act, what must the transferor and transferee do when ownership of a vehicle is transferred?",
+      "required_units": [
+        "50(1)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Transferor same State fourteen days report and copy transferee; outside State forty-five days NOC or receipt/postal acknowledgement and declaration. Transferee thirty days report with registration certificate, fee and transferor report. Do not generalize death/auction rules."
+    },
+    {
+      "id": "q6",
+      "topic": "JJA",
+      "question": "Under the Juvenile Justice Act, 2015, what are the eligibility requirements for prospective adoptive parents?",
+      "required_units": [
+        "57(1)",
+        "57(2)",
+        "57(3)",
+        "57(4)",
+        "57(5)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Physical fitness, financial soundness, mental alertness and motivation; both spouses consent; single/divorced subject to adoption regulations; single male cannot adopt girl; other prescribed criteria. Do not invent ages."
+    },
+    {
+      "id": "q7",
+      "topic": "CGST",
+      "question": "Under Section 22 of the CGST Act, what turnover thresholds are stated for registration, and how does the section treat special category States?",
+      "required_units": [
+        "22(1)",
+        "22(4)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Annual aggregate turnover exceeds twenty lakh general and ten lakh special category; conditional government powers up to twenty and exclusively-goods up to forty, not universal forty. Article279A definition and exclusions J&K, Arunachal Pradesh, Assam, Himachal Pradesh, Meghalaya, Sikkim, Uttarakhand. Retain interest/discount qualification if discussing exclusively goods."
+    },
+    {
+      "id": "q8",
+      "topic": "CGST",
+      "question": "Under Section 73 of the CGST Act, what happens if tax and interest are paid before a notice is served, and what happens if they are paid within thirty days of the notice?",
+      "required_units": [
+        "73(5)",
+        "73(6)",
+        "73(7)",
+        "73(8)",
+        "73(11)",
+        "73(12)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Before service pay tax plus interest and inform proper officer in writing; no notice/penalty for paid amount but shortfall may be noticed. Within thirty days of ISSUE of notice pay tax plus interest: no penalty and proceedings concluded. Exception self-assessed/collected tax unpaid beyond thirty days due date. Scope up to FY2023-24. Do not give unconditional penalty waiver."
+    },
+    {
+      "id": "q9",
+      "topic": "Consumer Protection",
+      "question": "Under the Consumer Protection Act, 2019, what relief can a District Commission order for defective goods, including refund or replacement?",
+      "required_units": [
+        "39(1)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Commission may order defect removal, replacement free from defects or refund with appropriate interest; compensation and other applicable relief, not automatic entitlement. No wrong-Act restriction."
+    },
+    {
+      "id": "q10",
+      "topic": "Consumer Protection",
+      "question": "Under the Consumer Protection Act, 2019, what is the limitation period for filing a complaint, and can a complaint be admitted after that period?",
+      "required_units": [
+        "69(1)",
+        "69(2)"
+      ],
+      "expected": "COVERED",
+      "criteria": "Two years from cause of action. Late complaint possible for sufficient cause, with Commission recording reasons for condonation."
+    }
+  ],
+  "held_out": [],
+  "protocol": "Known development questions; source/status scores are not semantic quality. Grade actual answers against criteria."
+}

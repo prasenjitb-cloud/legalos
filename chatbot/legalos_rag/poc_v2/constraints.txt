@@ -1,0 +1,10 @@
+# Tested POC environment; install with -r requirements.txt -c this-file.
+torch==2.8.0
+transformers==4.57.1
+sentence-transformers==5.1.2
+huggingface-hub==0.36.2
+tokenizers==0.22.2
+onnxruntime==1.23.2
+numpy==2.4.6
+snowballstemmer==3.1.1
+scikit-learn==1.9.1

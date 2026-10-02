@@ -147,3 +147,7 @@ Want to deploy Legalos on AWS EC2? Check out the complete deployment guide:
 ---
 
 ## You're all set!
+
+## Evidence-recovery experiment
+
+An isolated [POC](chatbot/legalos_rag/poc_v2/README.md) tests per-question evidence tracking and bounded recovery using the original chatbot’s configured model. It includes a reproducible ten-question comparison; the existing chatbot remains unchanged.

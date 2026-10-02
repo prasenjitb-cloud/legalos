@@ -127,3 +127,7 @@ flowchart TD
 ## Logging
 
 The log file path is set in the config as `logging.logfile` (e.g. `chatbot/rag_runs.jsonl`). Each RAG run is appended as one JSONL line: timestamp, model, query, final_prompt, and parsed output, via `chatbot.legalos_rag.runRag.log_rag_run` from `run_rag_loop()` in `chatbot/main.py`. Config keys `logging.exclude_model_name` and `logging.exclude_prompt` control whether the model name and/or final prompt text are omitted from each log entry. Used for prompt-engineering iteration and review without re-running experiments.
+
+## Isolated evidence-recovery POC
+
+The [POC module](poc_v2/README.md) keeps an evidence table for each requested part and can retrieve missing support before writing. Its controller, source store and CLI are separate from the original pipeline.

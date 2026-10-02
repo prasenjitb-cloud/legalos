@@ -1,0 +1,57 @@
+[
+  {
+    "act_id": "posh_2013",
+    "act_name": "Sexual Harassment of Women at Workplace Act, 2013",
+    "aliases": [
+      "POSH",
+      "Sexual Harassment of Women at Workplace"
+    ],
+    "corpus": "posh.json"
+  },
+  {
+    "act_id": "hma_1955",
+    "act_name": "Hindu Marriage Act, 1955",
+    "aliases": [
+      "Hindu Marriage Act",
+      "HMA"
+    ],
+    "corpus": "hma_1955.json"
+  },
+  {
+    "act_id": "mva_1988",
+    "act_name": "Motor Vehicles Act, 1988",
+    "aliases": [
+      "Motor Vehicles Act",
+      "MVA"
+    ],
+    "corpus": "mva_1988.json"
+  },
+  {
+    "act_id": "jja_2015",
+    "act_name": "Juvenile Justice (Care and Protection of Children) Act, 2015",
+    "aliases": [
+      "Juvenile Justice Act",
+      "Juvenile Justice",
+      "JJA"
+    ],
+    "corpus": "jja_2015.json"
+  },
+  {
+    "act_id": "cgst_2017",
+    "act_name": "Central Goods and Services Tax Act, 2017",
+    "aliases": [
+      "Central Goods and Services Tax Act",
+      "CGST Act",
+      "CGST"
+    ],
+    "corpus": "cgst_2017.json"
+  },
+  {
+    "act_id": "cpa_2019",
+    "act_name": "Consumer Protection Act, 2019",
+    "aliases": [
+      "Consumer Protection Act"
+    ],
+    "corpus": "cpa_2019.json"
+  }
+]

@@ -151,3 +151,7 @@ The evaluation JSON contains:
   - `rag_output`: the original model output object (or `null`)
   - `layer1`: structural summary (`explanation_provided`, `num_retrieved_chunks`, `num_citations`)
   - `layer2`: evaluator scores (per metric: `{ score, percentage }`, plus `total`)
+
+## POC comparison
+
+Run `python -m test.promptTester.poc_v2.checks` for controller contracts. Run `python -m test.promptTester.poc_v2.compare --database /absolute/path/to/vectorDB --output test/promptTester/outputs/poc-comparison` for the ten known development questions, with the model from `config/rag_v1.json`. The output directory must be new. Both pipelines use matched sampling settings and CPU embeddings; original prompts and retrieval functions remain unchanged. Full per-question traces stay in the ignored output directory. The [high-level run summary](poc_v2/results/comparison.md) separates source coverage from answer quality. See [setup and architecture](../../chatbot/legalos_rag/poc_v2/README.md).
