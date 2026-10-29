@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`; not run standalone.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader` entry point imports candidate sources for review.
 
 ---
 
@@ -12,6 +12,7 @@ legalos_rag/
 ├── __init__.py
 ├── runRag.py
 ├── queryRewriter.py
+├── sourceLoader.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -59,6 +60,38 @@ Central RAG logic:
 - **getFactsMulti(queries, db_path)** — Calls `retrieve_documents` and `format_documents` to keep the existing string-returning retrieval interface.
 - **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and **the original user question** (not the rewrite), invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
 - **log_rag_run(query, final_prompt, output, model, log_file, exclude_model_name, exclude_prompt)** — Append one RAG run as a JSONL line to the given log file. Called from `run_rag_loop()` in `chatbot/main.py` after each single RAG run (not from `run_rag`, which does not log).
+
+### `sourceLoader.py`
+
+`load_sources(config)` reads the configured POC JSON snapshots and their PDFs,
+checks both SHA-256 hashes and source metadata, validates section records, and
+returns one `{"sources": [...]}` corpus. The command writes this corpus only
+after every source passes those structural checks. Setup, required inputs, and
+the exact command are in [POC source loading](../README.md#load-the-poc-law-sources).
+
+Each source contains its Act ID and name, PDF filename, `source_version` (the
+PDF's SHA-256), snapshot JSON hash, update label, PDF page count, extraction and
+coverage notes, footnotes, `review_status`, and `sections`.
+
+Each section contains its number, title, unchanged snapshot `text`, PDF `pages`,
+page footnotes, and `excerpts`. A section's `source_id` is
+`<act_id>:<pdf_sha256>:section:<number>`. Excerpt IDs append
+`:chars:<start>-<end>`; offsets are zero-based Python string positions with an
+exclusive end, and each excerpt is exactly `section["text"][start:end]`.
+Excerpts are at most 1,200 characters and split at spaces where possible.
+Joining them reproduces the full section text without dropping qualifications.
+These are search-sized excerpts, not independently complete legal rules.
+
+Pages are the snapshot's **one-based PDF page numbers**, not the legacy vector
+store's page indices. Excerpts inherit their parent section's page range; the
+loader does not claim a precise page for each excerpt. Page-level footnotes are
+retained separately from section body text, including any extraction artifacts.
+
+All records have `review_status: "unreviewed"`. Matching hashes establish which
+files were imported; they do not certify that extraction captured every
+condition or section boundary correctly. The loader preserves the POC text for
+the separate source-quality review and has no connection to the live RAG graph.
+It does not enable a source, build a vector index, or require a model call.
 
 ### `workflow.py`
 

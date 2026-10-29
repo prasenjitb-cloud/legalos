@@ -1,0 +1,67 @@
+{
+  "source_directory": "./factsDB/pocSources",
+  "pdf_directory": "./factsDB/centralActPdfs/data",
+  "output_file": "./factsDB/sectionCorpus/poc_sources.json",
+  "sources": [
+    {
+      "act_id": "posh_2013",
+      "act_name": "Sexual Harassment of Women at Workplace (Prevention, Prohibition and Redressal) Act, 2013",
+      "snapshot_file": "posh.json",
+      "snapshot_sha256": "031085427bc4e89d83aa9dd857190b1ae339e00b601acdff318701a735c8e1b7",
+      "source_file": "A2013-14.pdf",
+      "source_sha256": "e59776d9ce4300c35acb8f3ed8150b33c18a77b5b553423ef9f1c69dbd144475",
+      "source_pages": 14,
+      "section_count": 30
+    },
+    {
+      "act_id": "hma_1955",
+      "act_name": "Hindu Marriage Act, 1955",
+      "snapshot_file": "hma_1955.json",
+      "snapshot_sha256": "27267f017623d83972d3b732bf49c760986479a786edb599d544b449214341ee",
+      "source_file": "A1955-25.pdf",
+      "source_sha256": "dbdc6d2a4223481908817b140e9c33d3bab6a48ff29787a7bd80786560171103",
+      "source_pages": 14,
+      "section_count": 37
+    },
+    {
+      "act_id": "mva_1988",
+      "act_name": "Motor Vehicles Act, 1988",
+      "snapshot_file": "mva_1988.json",
+      "snapshot_sha256": "a89545a119fdaf5646ff638cdb5e0a76d8cc7468882a3017a559dce40610a483",
+      "source_file": "aA1988-59.pdf",
+      "source_sha256": "be5bac906607cb2ac902d5c113c42c7f89142be3591a81ccb825cfbb7ee5d50d",
+      "source_pages": 175,
+      "section_count": 256
+    },
+    {
+      "act_id": "jja_2015",
+      "act_name": "Juvenile Justice (Care and Protection of Children) Act, 2015",
+      "snapshot_file": "jja_2015.json",
+      "snapshot_sha256": "48342c0f288359cdb258de085310dbd25267e92c12c99830a34794042de01eb7",
+      "source_file": "a2016-2.pdf",
+      "source_sha256": "00d43505b7f4f254a657dcdb0c330b3dd13d093d40a3eb5074baa1be1283832c",
+      "source_pages": 48,
+      "section_count": 112
+    },
+    {
+      "act_id": "cgst_2017",
+      "act_name": "Central Goods and Services Tax Act, 2017",
+      "snapshot_file": "cgst_2017.json",
+      "snapshot_sha256": "ffe5b2b9dd18901b9bb7ca3e87208c3cfe63819873d7dfb946caa89055585bb2",
+      "source_file": "a2017-12.pdf",
+      "source_sha256": "7c5f25425c67244e1621a3e142602350e70309a24c68833d475bf7a3c997725f",
+      "source_pages": 127,
+      "section_count": 188
+    },
+    {
+      "act_id": "cpa_2019",
+      "act_name": "Consumer Protection Act, 2019",
+      "snapshot_file": "cpa_2019.json",
+      "snapshot_sha256": "9b2aa54feb9bc011cfddeb54d92e2a43a8346d7e4a6e47667a60ffee0cb71b2d",
+      "source_file": "eng201935.pdf",
+      "source_sha256": "414fb1edd9b0f7fbc2839ad92fb2b29ebfa3b557e70e928ab4a535802199e3e7",
+      "source_pages": 39,
+      "section_count": 107
+    }
+  ]
+}

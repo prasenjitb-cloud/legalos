@@ -13,6 +13,7 @@ chatbot/
     ├── __init__.py  
     ├── runRag.py
     ├── queryRewriter.py
+    ├── sourceLoader.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -75,6 +76,62 @@ This will:
 - Create a **local, on-disk Qdrant vector database**
 - Embed all PDFs using **BAAI/bge-small-en**
 - Store vectors persistently inside `./vectorDB`
+
+---
+
+## Load the POC law sources
+
+This optional setup imports the six pinned POC snapshots for the next retrieval
+path. It does not change the existing Qdrant database or chatbot answers. Every
+imported Act is marked `unreviewed`; checking PDF section boundaries, material
+conditions, and exceptions is the next step in [issue #23](https://github.com/prasenjitb-cloud/legalos/issues/23).
+
+Run these commands from the repository root. Export the JSON snapshots from the
+fixed [reference POC commit](https://github.com/prasenjitb-cloud/legalos/commit/b9f02f5a5e5df7ce1b17b3dd1c0cb1a1df2eeab7):
+
+```bash
+# Needed once if the reference commit is not available locally.
+git fetch origin poc/evidence-recovery-clean
+mkdir -p ./factsDB/pocSources
+git archive b9f02f5a5e5df7ce1b17b3dd1c0cb1a1df2eeab7:chatbot/legalos_rag/poc_v2/data | tar -x -C ./factsDB/pocSources
+```
+
+The export copies only source data; the loader does not import or run POC code.
+Once the inputs are local, loading works offline without Ollama or embeddings.
+The PDFs from the download step must be the exact snapshots listed in
+`config/poc_sources.json`:
+
+| Act | Snapshot JSON | PDF | Numbered sections |
+| --- | --- | --- | ---: |
+| POSH, 2013 | `posh.json` | `A2013-14.pdf` | 30 |
+| Hindu Marriage, 1955 | `hma_1955.json` | `A1955-25.pdf` | 37 |
+| Motor Vehicles, 1988 | `mva_1988.json` | `aA1988-59.pdf` | 256 |
+| Juvenile Justice, 2015 | `jja_2015.json` | `a2016-2.pdf` | 112 |
+| Central Goods and Services Tax, 2017 | `cgst_2017.json` | `a2017-12.pdf` | 188 |
+| Consumer Protection, 2019 | `cpa_2019.json` | `eng201935.pdf` | 107 |
+
+```bash
+python -m chatbot.legalos_rag.sourceLoader --config ./config/poc_sources.json
+```
+
+The config supplies `source_directory`, `pdf_directory`, `output_file`, and the
+six source entries with their expected hashes, identities, page counts, and
+section counts. Relative paths resolve from the repository root. Change these
+paths in a local config when the inputs are stored elsewhere.
+
+The command validates all six snapshots and PDFs before writing
+`factsDB/sectionCorpus/poc_sources.json`, containing 730 section records with
+their source details and smaller excerpts. It prints each Act's section count
+and the output path. Missing or changed files, duplicate Acts or sections, and
+malformed section records fail the command. An existing output file is preserved;
+choose a new `output_file` to repeat an import. Both source exports and generated
+corpora are ignored by Git.
+
+A current download may differ from the pinned PDF. A hash mismatch requires the
+matching archived PDF or a separate source-update review; changing a hash is not
+source-quality approval. The snapshots cover numbered sections, not associated
+Rules or all schedules. See the [source schema](legalos_rag/README.md#sourceloaderpy)
+for source versions, IDs, excerpt offsets, and review limitations.
 
 ---
 
