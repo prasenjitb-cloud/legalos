@@ -2,6 +2,7 @@
 
 from typing import Required, TypedDict
 
+import langchain_core.documents
 from langgraph.graph import END, START, StateGraph
 
 from chatbot.legalos_rag import queryRewriter, runRag
@@ -13,6 +14,7 @@ class RAGState(TypedDict, total=False):
 
     query: Required[str]
     rewritten_queries: list[str]
+    retrieved_sources: list[langchain_core.documents.Document]
     retrieved_chunks: str
     result: LegalAnswer | None
     final_prompt: str | None
@@ -28,11 +30,14 @@ def build_rag_graph(db_path: str, prompt_template: str, slm):
 
     def retrieve_chunks(state: RAGState) -> dict:
         # Retrieve context using all query variants.
-        chunks = runRag.getFactsMulti(
+        sources = runRag.retrieve_documents(
             queries=state["rewritten_queries"],
             db_path=db_path,
         )
-        return {"retrieved_chunks": chunks}
+        return {
+            "retrieved_sources": sources,
+            "retrieved_chunks": runRag.format_documents(sources),
+        }
 
     def generate_answer(state: RAGState) -> dict:
         # Generate only when retrieval found context.

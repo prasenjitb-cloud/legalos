@@ -54,16 +54,30 @@ Pydantic schemas for structured outputs: `LegalAnswer` (answer_found, act_name, 
 Central RAG logic:
 
 - **getFacts(q, db_path)** — Setup Qdrant vectorstore (HuggingFace embeddings), retrieve top-k chunks for a single query string, return them formatted as a single string for the prompt. Still available for single-query retrieval.
-- **getFactsMulti(queries, db_path)** — For each query string, runs `similarity_search_with_score` with `k=3`, deduplicates hits by `(pdf_number, page)`, and returns up to **5** formatted chunks.
+- **retrieve_documents(queries, db_path)** — For each query string, runs `similarity_search_with_score` with `k=3`, deduplicates hits by `(pdf_number, page)`, and returns up to **5** documents, retaining their text, IDs, and full metadata.
+- **format_documents(docs)** — Formats documents into the existing `[DOC n]` prompt blocks with PDF number, page, and file name.
+- **getFactsMulti(queries, db_path)** — Calls `retrieve_documents` and `format_documents` to keep the existing string-returning retrieval interface.
 - **invoker(slm, retrievedChunks, query, template)** — Build output parser for `LegalAnswer`, build prompt from `prompt/prompts.setup_rag_prompt_skeleton`, format with facts and **the original user question** (not the rewrite), invoke the SLM, parse response into `LegalAnswer`. Returns `(parsed_result: LegalAnswer, final_prompt_text: str)`. Does **not** log.
 - **log_rag_run(query, final_prompt, output, model, log_file, exclude_model_name, exclude_prompt)** — Append one RAG run as a JSONL line to the given log file. Called from `run_rag_loop()` in `chatbot/main.py` after each single RAG run (not from `run_rag`, which does not log).
 
 ### `workflow.py`
 
-- **RAGState** — Typed shared state containing the query, rewrites, retrieved chunks, result, and final prompt.
+- **RAGState** — Typed shared state containing the unchanged original `query`, rewrites, `retrieved_sources` (LangChain documents), formatted `retrieved_chunks`, result, and final prompt.
 - **build_rag_graph(db_path, prompt_template, slm)** — Builds the **rewrite → retrieve → generate** graph. Interactive and batch runs compile it once and reuse it for every question.
 
 The state carries the output of one node into the next. This keeps each node focused on one task and avoids passing many separate values between functions.
+
+The retrieval node retains the selected documents in `retrieved_sources` so later
+steps can read their text and source metadata without parsing prompt text. The
+same documents produce `retrieved_chunks`; ranking, page-based deduplication,
+prompt formatting, and answer generation are unchanged. Metadata is retained as
+stored, including absent fields; retrieval does not verify a legal source.
+`query` remains the original question throughout rewriting and generation.
+Question parts, stated facts, and evidence gaps will be added when nodes use them.
+
+Direct graph callers can inspect `graph.invoke({"query": question})["retrieved_sources"]`.
+The `chatbot.main.run_rag` tuple, interactive logs, and batch JSONL fields remain
+unchanged. An empty search produces an empty source list and skips generation.
 
 The graph is deliberately linear in this version. A future query-classifier node will decide which retrieval path a question needs. Direct questions can take a short path, while scenario-based or multi-issue questions can use more specialized processing.
 
@@ -73,7 +87,7 @@ The graph is deliberately linear in this version. A future query-classifier node
 ## Retrieval workflow (before the prompt)
 
 1. **rewrite_and_expand** — Turn the user question into one or three search strings (original plus optional legal phrasings).
-2. **getFactsMulti** — Retrieve and merge evidence from all strings with deduplication by document page.
+2. **retrieve_documents** — Retrieve and merge evidence from all strings with deduplication by document page, retaining documents in state and formatting them with `format_documents`.
 3. **invoker** — Answer using the original question text and retrieved chunks.
 
 The compiled graph in `workflow.py` connects these steps. The existing rewrite, retrieval, and generation functions are reused without changing their behavior.

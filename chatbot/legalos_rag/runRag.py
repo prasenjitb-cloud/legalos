@@ -57,7 +57,7 @@ def _safe_json(obj):
     return json.dumps(obj, ensure_ascii=False)
 
 
-def _format_docs(docs: list[langchain_core.documents.Document]) -> str:
+def format_documents(docs: list[langchain_core.documents.Document]) -> str:
     """Turn a list of documents into a single string with [DOC n], text, and source metadata.
 
     Args:
@@ -98,7 +98,7 @@ def getFacts(q: str, db_path: str):
         collection_name=COLLECTION_NAME,
     )
     retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
-    return _format_docs(retriever.invoke(q))
+    return format_documents(retriever.invoke(q))
 
 
 _K_PER_QUERY = 3
@@ -106,18 +106,25 @@ _MAX_CHUNKS = 5
 
 
 def getFactsMulti(queries: list, db_path: str) -> str:
+    """Return the merged documents as the existing prompt context string."""
+    return format_documents(retrieve_documents(queries, db_path))
+
+
+def retrieve_documents(
+    queries: list[str], db_path: str
+) -> list[langchain_core.documents.Document]:
     """Retrieve chunks for multiple query variants, deduplicate by best score, and return top-K.
 
     Runs each query through similarity_search_with_score (k=3 each), deduplicates by
     (pdf_number, page) keeping the highest score for each chunk, sorts by descending
-    relevance, and returns at most _MAX_CHUNKS formatted as [DOC n] blocks.
+    relevance, and returns at most _MAX_CHUNKS with their source metadata intact.
 
     Args:
         queries: List of query strings (original + rewritten + variants from queryRewriter).
         db_path: Path to the Qdrant vector database directory.
 
     Returns:
-        str: Formatted string of [DOC n] blocks (text + source metadata) for use in the RAG prompt.
+        list[Document]: Ranked documents with their original text, IDs, and metadata.
     """
     vectorstore = _setup_vectorstore(
         db_path=db_path,
@@ -136,7 +143,7 @@ def getFactsMulti(queries: list, db_path: str) -> str:
     ranked = sorted(best.values(), key=lambda pair: pair[1], reverse=True)
     top_docs = [doc for doc, _score in ranked[:_MAX_CHUNKS]]
 
-    return _format_docs(top_docs)
+    return top_docs
 
 
 def invoker(
