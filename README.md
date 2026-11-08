@@ -54,6 +54,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── runRag.py
 │       ├── queryRewriter.py   # Legal phrasing + variant queries for retrieval
 │       ├── sourceLoader.py    # Import pinned POC law snapshots for source review
+│       ├── sourceReview.py    # Check imported sections against their PDFs
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -145,6 +146,8 @@ pip install -r requirements.txt
 For the next retrieval path, the six POC law snapshots can be imported into a
 local section corpus. See [POC source loading](chatbot/README.md#load-the-poc-law-sources)
 for the required files and command. Importing sources does not enable them in the chatbot.
+Each imported Act is then [checked against its PDF](chatbot/README.md#check-the-poc-law-sources);
+an Act that fails the check is refused by the new retrieval path.
 
 ## AWS Deployment
 

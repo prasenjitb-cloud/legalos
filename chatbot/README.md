@@ -14,6 +14,7 @@ chatbot/
     ├── runRag.py
     ├── queryRewriter.py
     ├── sourceLoader.py
+    ├── sourceReview.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -132,6 +133,40 @@ matching archived PDF or a separate source-update review; changing a hash is not
 source-quality approval. The snapshots cover numbered sections, not associated
 Rules or all schedules. See the [source schema](legalos_rag/README.md#sourceloaderpy)
 for source versions, IDs, excerpt offsets, and review limitations.
+
+## Check the POC law sources
+
+The imported sections come from snapshots, so each Act is checked against its PDF
+before the new retrieval path may use it. Run this after the loader, from the
+repository root:
+
+```bash
+python -m chatbot.legalos_rag.sourceReview --config ./config/poc_sources.json
+```
+
+The command reads the section corpus written by the loader and the PDFs in
+`pdf_directory`. It needs no model or network. It writes
+`factsDB/sectionCorpus/poc_source_review.json` (the `review_file` in the config),
+with a `passed` or `failed` status and a list of findings for each Act. An existing
+review file is preserved; choose a new `review_file` to repeat the check. The file
+is ignored by Git.
+
+For every section the check confirms that the heading and number are found in
+order on the recorded first page, that the section text contains the words the PDF
+shows for that section, and that every `Provided that`, `Explanation`, `Exception`
+and `Illustration` in the PDF is also in the section. An Act also fails if its PDF
+page count or name does not match. Any finding fails the whole Act.
+
+Result on the six pinned Acts: POSH, Hindu Marriage, Juvenile Justice, Central
+Goods and Services Tax, and Consumer Protection pass. Motor Vehicles fails on one
+section, `217A`: 12 PDF words are not in the section text. They appear to come from
+a footnote about the First Schedule rather than from the section, but that has not
+been confirmed, so the Act stays refused until it is reviewed.
+
+A pass means the section text matches the PDF text at this level. It is not legal
+approval, and it does not check Rules or Schedules. See the
+[source review notes](legalos_rag/README.md#sourcereviewpy) for the exact rules and
+the gate that refuses unchecked Acts.
 
 ---
 

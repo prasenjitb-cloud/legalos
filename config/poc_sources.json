@@ -2,6 +2,7 @@
   "source_directory": "./factsDB/pocSources",
   "pdf_directory": "./factsDB/centralActPdfs/data",
   "output_file": "./factsDB/sectionCorpus/poc_sources.json",
+  "review_file": "./factsDB/sectionCorpus/poc_source_review.json",
   "sources": [
     {
       "act_id": "posh_2013",

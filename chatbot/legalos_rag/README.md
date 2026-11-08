@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader` entry point imports candidate sources for review.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader` and `sourceReview` entry points import candidate sources and check them against their PDFs.
 
 ---
 
@@ -13,6 +13,7 @@ legalos_rag/
 ├── runRag.py
 ├── queryRewriter.py
 ├── sourceLoader.py
+├── sourceReview.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -92,6 +93,42 @@ files were imported; they do not certify that extraction captured every
 condition or section boundary correctly. The loader preserves the POC text for
 the separate source-quality review and has no connection to the live RAG graph.
 It does not enable a source, build a vector index, or require a model call.
+
+### `sourceReview.py`
+
+`review_sources(config)` checks every Act in the loaded corpus against its PDF and
+returns one `passed` or `failed` record per Act with its `source_version`, the
+number of sections checked, and a list of findings. `review_source(source,
+pdf_directory)` does this for one Act. The command writes the result to the
+`review_file` in the config. The checks work on words only (letters, lower case), so
+footnote markers and punctuation in the PDF do not matter.
+
+- **PDF identity** — the PDF page count equals `source_pages` and the first part of
+  the Act's name (up to its first comma) appears at the start of the PDF. The file hash was already checked when the
+  sources were loaded.
+- **Section boundaries** — a section heading is accepted only if a line starting
+  with the section number, followed by the same first title words, is found on the
+  section's first recorded page and after the previous section's heading.
+- **Section text** — the PDF words between a heading and the next heading (or the
+  end of the section's last page) must appear in the section text and its footnotes.
+  A section fails when more than 5% of them (at least 5 words) are missing.
+- **Qualifications** — each `Provided that`, `Explanation`, `Exception` and
+  `Illustration` that opens a clause in the PDF must also be in the section.
+  Amendment notes such as "for the Explanation" are not counted.
+
+Chapter headings are not section text and are skipped. Reading stops at the first
+schedule heading on or after the last section's first page, so schedules are not
+mistaken for section text; schedule headings in the table of contents are ignored.
+The check does not review Schedules or associated Rules.
+
+`load_verified_source(config, act_id)` is the gate for the new retrieval path. It
+returns an Act only when the review file shows `passed` for that Act's current
+`source_version`, and raises `ValueError` for an unknown Act, a failed or missing
+review, or a source version that has changed since the review. Nothing calls it yet;
+later steps use it before reading an Act.
+
+Passing is a text comparison with the PDF, not legal approval. Findings are not
+waived automatically; an Act with any finding stays refused until it is reviewed.
 
 ### `workflow.py`
 
