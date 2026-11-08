@@ -16,6 +16,8 @@ chatbot/
     ├── sourceLoader.py
     ├── sourceReview.py
     ├── sectionLookup.py
+    ├── structuredCall.py
+    ├── questionSplitter.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -188,6 +190,27 @@ and `footnotes`. It needs no model or network.
 It fails with a clear message when the ID is malformed, names an unknown Act,
 section or excerpt, was made for a different version of the PDF, or belongs to an
 Act that has not passed the source check above, such as Motor Vehicles at present.
+
+## Split a question
+
+A user may ask about different legal matters in one message. This command splits a
+question into independent parts only when needed, and keeps each part linked to the
+facts it relies on. It needs Ollama running with the model named in the config. Run it
+from the repository root:
+
+```bash
+python -m chatbot.legalos_rag.questionSplitter --config ./config/rag_v1.json --question "<question>"
+```
+
+The config supplies only `model.model_name`. The command prints the original
+`question` and its `parts`; each part has an `id`, a complete `question` and the
+`facts` it depends on, copied exactly from the original question. It does not search
+the law and does not change the chatbot.
+
+Several details of one legal problem stay in one part. When the model fails, returns
+more than four parts, or rewrites a part with words the user did not use, the whole
+question is kept as one part. See the
+[splitter notes](legalos_rag/README.md#questionsplitterpy) for what was measured.
 
 ---
 

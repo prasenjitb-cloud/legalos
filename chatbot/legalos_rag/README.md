@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts.
 
 ---
 
@@ -15,6 +15,8 @@ legalos_rag/
 ├── sourceLoader.py
 ├── sourceReview.py
 ├── sectionLookup.py
+├── structuredCall.py
+├── questionSplitter.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -147,6 +149,38 @@ source check for the ID's `source_version`. It raises `ValueError` for a malform
 ID, an unknown Act, section or excerpt, a different source version, or an Act that
 has not passed. The `sectionLookup` command prints the same result as JSON; usage is
 in [Fetch a complete section](../README.md#fetch-a-complete-section).
+
+### `structuredCall.py`
+
+`ask_model(slm, template, schema, **inputs)` fills a prompt template, calls the same
+Ollama model as `slm` at temperature 0, and parses the reply into a Pydantic schema,
+using the same parser as the query rewriter. It raises on a parse or model error so
+each caller chooses its own fallback. The next model-based steps reuse it.
+
+### `questionSplitter.py`
+
+`split_question(question, slm)` returns `{"question": <original>, "parts": [...]}`.
+Each part is `{"id": "p1", "question": ..., "facts": [...]}`. The model proposes the
+parts and code checks them:
+
+- **Facts** are kept only when they are exact phrases of the original question
+  (compared on words, ignoring case and punctuation).
+- **Wording**: a part may rearrange the user's words but at most 20% of its words may
+  be new; otherwise the whole question stays one part.
+- **Size**: zero parts or more than four parts also keep one part.
+- **Failure**: any model or parse error keeps one part.
+
+The prompt asks for one part unless the user asks about different Acts or unrelated
+situations. Several details of one problem, such as where to file and the deadline,
+stay together.
+
+Measured with `qwen2.5:3b-instruct` on 18 reviewed questions (12 written first, 6 held
+back and run once): 16 gave a defensible number of parts. None of the 8 single-problem
+questions was split. Two questions with unrelated situations in one flowing text, not
+named Acts, stayed as one part. This under-splitting loses no facts. The `facts` list
+is best effort: the model sometimes leaves it empty even when the part's own text
+states the fact. Exact fact extraction is a separate step. Nothing in the live graph
+calls the splitter yet.
 
 ### `workflow.py`
 
