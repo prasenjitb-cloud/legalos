@@ -55,6 +55,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── queryRewriter.py   # Legal phrasing + variant queries for retrieval
 │       ├── sourceLoader.py    # Import pinned POC law snapshots for source review
 │       ├── sourceReview.py    # Check imported sections against their PDFs
+│       ├── sectionLookup.py   # Fetch a complete section of a checked Act by ID
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py

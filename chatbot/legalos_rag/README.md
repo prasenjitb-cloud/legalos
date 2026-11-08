@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader` and `sourceReview` entry points import candidate sources and check them against their PDFs.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections.
 
 ---
 
@@ -14,6 +14,7 @@ legalos_rag/
 ├── queryRewriter.py
 ├── sourceLoader.py
 ├── sourceReview.py
+├── sectionLookup.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -129,6 +130,23 @@ later steps use it before reading an Act.
 
 Passing is a text comparison with the PDF, not legal approval. Findings are not
 waived automatically; an Act with any finding stays refused until it is reviewed.
+
+### `sectionLookup.py`
+
+`fetch_section(config, source_id)` returns the complete section for a section ID
+(`<act_id>:<source_version>:section:<number>`) or one of its excerpt IDs (the same
+ID plus `:chars:<start>-<end>`). A search that finds an excerpt can call it to read
+the whole provision, so provisos, explanations and other conditions outside the
+excerpt are not lost.
+
+The result has `act_id`, `act_name`, `source_version`, the section's `source_id`,
+`section`, `title`, `text`, `pages` and `footnotes`. `text` is the unchanged section
+text; the excerpts are not returned. The function calls
+`sourceReview.load_verified_source`, so it works only for an Act that has passed its
+source check for the ID's `source_version`. It raises `ValueError` for a malformed
+ID, an unknown Act, section or excerpt, a different source version, or an Act that
+has not passed. The `sectionLookup` command prints the same result as JSON; usage is
+in [Fetch a complete section](../README.md#fetch-a-complete-section).
 
 ### `workflow.py`
 

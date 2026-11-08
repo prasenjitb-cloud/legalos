@@ -15,6 +15,7 @@ chatbot/
     ├── queryRewriter.py
     ├── sourceLoader.py
     ├── sourceReview.py
+    ├── sectionLookup.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -167,6 +168,26 @@ A pass means the section text matches the PDF text at this level. It is not lega
 approval, and it does not check Rules or Schedules. See the
 [source review notes](legalos_rag/README.md#sourcereviewpy) for the exact rules and
 the gate that refuses unchecked Acts.
+
+## Fetch a complete section
+
+A search hit is only a short excerpt, and a condition or proviso may sit just
+outside it. This command returns the whole section for a section ID or any of its
+excerpt IDs. Run it from the repository root after the loader and the check:
+
+```bash
+python -m chatbot.legalos_rag.sectionLookup --config ./config/poc_sources.json --id "<source_id>"
+```
+
+IDs are the `source_id` values in `factsDB/sectionCorpus/poc_sources.json`, for
+example `posh_2013:<pdf_sha256>:section:4` or one of its excerpts, which end in
+`:chars:<start>-<end>`. The command prints one JSON object with the Act ID and name,
+`source_version`, the section's `source_id`, number, title, full `text`, PDF `pages`
+and `footnotes`. It needs no model or network.
+
+It fails with a clear message when the ID is malformed, names an unknown Act,
+section or excerpt, was made for a different version of the PDF, or belongs to an
+Act that has not passed the source check above, such as Motor Vehicles at present.
 
 ---
 
