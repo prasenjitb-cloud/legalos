@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, and `keywordSearch` ranks excerpts by keyword.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, and `retriever` merges keyword and vector search.
 
 ---
 
@@ -20,6 +20,7 @@ legalos_rag/
 ├── factExtractor.py
 ├── referenceAgent.py
 ├── keywordSearch.py
+├── retriever.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -262,6 +263,43 @@ titles that BM25 also indexes, so the large gap is expected and does not show th
 better in general. On everyday wording BM25 alone is weak, which is why it will be combined
 with the vector search in the shared retriever. Adding the Act name to the vector query did
 not help (3 of 30). Nothing in the live graph calls the search yet.
+
+### `retriever.py`
+
+`retrieve(config, vectorstore, act_id, question, target="", slm=None, max_sections=3)` is the
+one search tool for a verified Act. `open_vectorstore(db_path)` opens the existing Qdrant
+store, so a caller opens it once and reuses it.
+
+1. **Query**: the `target` (evidence wanted) is added to the question. With `slm`, the existing
+   `queryRewriter` adds its two phrasings and every phrasing is searched; without it the plain
+   text is searched. The rewriter is off unless the caller asks for it.
+2. **Keyword**: `keywordSearch.search_excerpts`, top 10 excerpts.
+3. **Vector**: the existing vector search, limited to the Act's PDF by `file_name`, top 10
+   chunks. The vector store holds PDF chunks, not verified excerpts, so each chunk is mapped to
+   the verified excerpt on the same PDF page that holds most of its words. A chunk with less
+   than 40% of its words in any excerpt is dropped, never guessed.
+4. **Merge**: reciprocal rank fusion (`1 / (60 + rank)`) over all result lists, by excerpt
+   source ID. Excerpts are grouped by section, a section takes its best excerpt's score, and
+   the best `max_sections` are returned as complete sections from `sectionLookup`.
+
+It calls `sourceReview.load_verified_source`, so an Act that has not passed is refused, and it
+searches one Act per call.
+
+Measured on 15 requests across the five checked Acts (5 rules or definitions, 5 filing
+processes, 5 outcomes or penalties), with the accepted sections chosen before running. A hit
+means an accepted section is among the top 3 sections:
+
+| Request type | Keyword only | Vector only (Act-limited, mapped) | Merged |
+| --- | ---: | ---: | ---: |
+| Rule or definition (5) | 0 | 3 | 2 |
+| Filing process (5) | 4 | 4 | 5 |
+| Outcome or penalty (5) | 5 | 4 | 5 |
+| **All (15)** | **9** | **11** | **12** |
+
+Merging was best overall but not on every request: it lost two definition requests that the
+vector search alone found, and no method found "persons liable for registration". Rule and
+definition requests are the weak spot. The query rewriter was tried on one informal question
+and not measured. Nothing in the live graph calls the retriever yet.
 
 ### `workflow.py`
 

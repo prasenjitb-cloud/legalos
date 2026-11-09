@@ -61,6 +61,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── factExtractor.py   # Record facts the user states, as exact quotes
 │       ├── referenceAgent.py  # Resolve a named Act and section to a verified provision
 │       ├── keywordSearch.py   # BM25 keyword search over one verified Act
+│       ├── retriever.py       # Keyword + vector search merged by source ID, full sections
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -158,6 +159,7 @@ separate legal matters can be [split into parts](chatbot/README.md#split-a-quest
 and the facts a user states can be [recorded as exact quotes](chatbot/README.md#record-the-facts-a-user-states).
 A named Act and section can be [resolved to a verified provision](chatbot/README.md#resolve-a-named-act-and-section),
 and exact legal words and section numbers can be found with [keyword search](chatbot/README.md#search-a-verified-act-by-keyword).
+The [shared retriever](chatbot/README.md#retrieve-sections-of-a-verified-act) combines keyword and vector search for one checked Act.
 
 ## AWS Deployment
 

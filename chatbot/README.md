@@ -21,6 +21,7 @@ chatbot/
     ├── factExtractor.py
     ├── referenceAgent.py
     ├── keywordSearch.py
+    ├── retriever.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -275,6 +276,32 @@ The command prints the hits, best first, each with its `rank`, `score`, excerpt 
 results of one query; they are not probabilities. An Act that has not passed its source check
 is refused. A query with no matching word prints `[]`. See the
 [search notes](legalos_rag/README.md#keywordsearchpy) for how it works and what was measured.
+
+## Retrieve sections of a verified Act
+
+One command finds a rule, a filing process or an outcome. It searches one checked Act by
+keyword and by meaning, merges the two result lists, and returns the best matches as
+complete sections. It needs the loader, the source check, and the vector database from
+Step 2 above. It needs no model unless `--rewrite` is used, in which case Ollama must be
+running. Run it from the repository root:
+
+```bash
+python -m chatbot.legalos_rag.retriever --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "How do two spouses get divorced together by agreement?" \
+  --target "procedure for mutual consent divorce petition"
+```
+
+`--target` says what evidence is wanted ("definition of sexual harassment", "complaint filing
+process", "penalty for non-compliance"); the same command serves every kind of request.
+`--rewrite` also searches with the query rewriter's legal phrasings, which can help when the
+question is informal. `--max-sections` sets how many sections come back (default 3). The
+vector database path and model come from `--rag-config`, the same file the chatbot uses.
+
+The output lists `results`, best first. Each has the `score`, whether it was `found_by`
+`keyword`, `vector` or both, the `hit_source_ids` of the matching excerpts, and the complete
+`section` (text, pages, footnotes). An Act that has not passed its source check is refused.
+See the [retriever notes](legalos_rag/README.md#retrieverpy) for how results are merged and
+what was measured.
 
 ---
 
