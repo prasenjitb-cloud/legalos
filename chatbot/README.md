@@ -20,6 +20,7 @@ chatbot/
     ├── questionSplitter.py
     ├── factExtractor.py
     ├── referenceAgent.py
+    ├── keywordSearch.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -256,6 +257,24 @@ full provision (the same output as the section lookup above). Other results have
 A question that names no section prints `[]`. Each source in `config/poc_sources.json`
 can list short `aliases` (such as `POSH`) that are recognised as the Act. See the
 [agent notes](legalos_rag/README.md#referenceagentpy) for the matching rules.
+
+## Search a verified Act by keyword
+
+The current vector search often misses an exact legal term or a section number. This
+command ranks the excerpts of one checked Act by the words in the query (BM25). It needs
+the loader and the source check to have been run, but no model, vector database or
+network. Run it from the repository root:
+
+```bash
+python -m chatbot.legalos_rag.keywordSearch --config ./config/poc_sources.json --act posh_2013 --query "Local Committee" --k 5
+```
+
+`--act` is an Act ID from the config and `--k` is how many excerpts to return (default 5).
+The command prints the hits, best first, each with its `rank`, `score`, excerpt `source_id`,
+`section_source_id`, section number and title, and the excerpt `text`. Scores only order the
+results of one query; they are not probabilities. An Act that has not passed its source check
+is refused. A query with no matching word prints `[]`. See the
+[search notes](legalos_rag/README.md#keywordsearchpy) for how it works and what was measured.
 
 ---
 

@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, and `referenceAgent` resolves a named Act and section.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, and `keywordSearch` ranks excerpts by keyword.
 
 ---
 
@@ -19,6 +19,7 @@ legalos_rag/
 ├── questionSplitter.py
 ├── factExtractor.py
 ├── referenceAgent.py
+├── keywordSearch.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -228,6 +229,39 @@ Act 13" returns nothing. A phrase such as "section 13 of my building" is reporte
 ambiguous, not ignored. An amending Act written with brackets, such as "Hindu Marriage
 (Amendment) Act", is reported as ambiguous, never as the supported Act. Rules and schedules
 are not covered. Nothing in the live graph calls this yet.
+
+### `keywordSearch.py`
+
+`search_excerpts(config, act_id, query, k=5)` ranks the excerpts of one verified Act with
+BM25 (k1 1.5, b 0.75) and returns the best `k`. BM25 is written out in the module, so no
+new dependency is needed. It works on the Act's search-sized excerpts, which are what the
+shared retriever will merge by source ID and expand to full sections.
+
+- **Words**: lower-case letters and digits, with no stemming, so an identifier such as `13b`
+  stays one word and legal terms match exactly.
+- **What is searchable**: each excerpt's text plus its section number and title, so a query
+  such as `section 13B` finds the section even when the excerpt does not repeat its heading.
+- **Gate**: it calls `sourceReview.load_verified_source`, so an Act that has not passed its
+  source check is refused. It searches one Act per call.
+- **Results**: ties keep document order, so results are repeatable. An excerpt sharing no word
+  with the query is never returned.
+
+Measured on the five Acts that pass the check, with the target section chosen from the
+section titles before any search was run (results in the PR notes). Hits are counted when the
+target section is in the top 3. The current vector search was run as it is, over all Acts, and
+counted as a hit when a returned chunk was on the target section's page of the right PDF:
+
+| Queries | BM25 | Current vector search |
+| --- | ---: | ---: |
+| 22 named terms (for example "bigamy", "Child Welfare Committee") | 22 of 22 | 8 of 22 |
+| 8 section numbers (for example "section 13B") | 8 of 8 | 0 of 8 |
+| 8 plain-language questions | 3 of 8 (5 of 8 in the top 5) | not run |
+
+The first two rows are the cases keyword search is built for, and the queries used section
+titles that BM25 also indexes, so the large gap is expected and does not show that BM25 is
+better in general. On everyday wording BM25 alone is weak, which is why it will be combined
+with the vector search in the shared retriever. Adding the Act name to the vector query did
+not help (3 of 30). Nothing in the live graph calls the search yet.
 
 ### `workflow.py`
 
