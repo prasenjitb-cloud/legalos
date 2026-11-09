@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, `answerAgent` writes the answer, and `evaluator` checks it.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, `answerAgent` writes the answer, `evaluator` checks it, and `orchestrator` runs them as a graph.
 
 ---
 
@@ -28,6 +28,7 @@ legalos_rag/
 ├── contextCompactor.py
 ├── answerAgent.py
 ├── evaluator.py
+├── orchestrator.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -595,6 +596,46 @@ consumer-complaint answers omitted a proviso and the 25 per cent minimum, and th
 garbled explanation that contains the right numbers passes, and a paraphrase that avoids the source's words can be flagged.
 It does not judge the condition check's verdicts or the "situation" sentence beyond its wording. Long sections make it
 strict, because the answer is only about 120 words. Nothing in the live graph calls the evaluator yet.
+
+### `orchestrator.py`
+
+`build_orchestrator(config, vectorstore, slm)` compiles a LangGraph `StateGraph` like the one in `workflow.py`:
+`assess` (facts, evidence and condition checks) -> `answer` -> `evaluate`, then a routing function chooses the next
+job from the evaluator's findings. `run_question(graph, act_id, question)` runs it. All routing is plain code.
+
+| After `evaluate` | Next job |
+| --- | --- |
+| the call limit is reached, or the verdict is `fail` | `finish` (a failed check is never repaired) |
+| an omitted limit, hedge or proviso, and repairs remain | `repair` |
+| a part was not found, and extra search is enabled and searches remain | `search_more` |
+| anything else | `finish` |
+
+- **Repair** appends each omitted source clause word for word ("The section also states: “...”") to that part's
+  explanation and evaluates again. No model is used, and it runs at most `max_repairs` times (default 1).
+- **Ask**: a part whose finding is `needs_fact` is returned with its `ask` for the user. The orchestrator does not search
+  for a fact that only the user can give.
+- **Search more** (off by default) searches again for a part that found nothing, with the query rewriter, and keeps only
+  sections that pass the evidence filter. It runs at most `max_searches` times.
+- **Limits and reuse**: each job counts as a call; at `max_calls` (default 8) it stops with `call_limit` if the answer has
+  not passed. A request already completed for the same Act and question in the same graph is reused, so it is not assessed twice.
+- **Result**: `status`, `answer`, `asks`, `missing` (what to look for or ask), the `evaluation`, `calls` and the `trace`.
+
+Checked with scripted stand-ins for each path (11 checks, all pass): a passing answer; an omission repaired once and then
+answered; an omission that persists ends `partial` after one repair; a decisive fact is asked for, not searched for; nothing found
+with extra search off ends `no_evidence` naming the missing detail; the call limit stops before a repair; a failed check is not repaired;
+a completed request is reused; extra search runs only when enabled and at most `max_searches` times; the repair adds the clause verbatim.
+
+Run for real with `qwen2.5:3b-instruct` on 6 questions, 5 gave the expected status: two-part divorce and custody
+(`answered` after one repair), consent divorce without facts (`needs_fact`), a question the Act does not cover
+(`no_evidence`), a bride aged 17 (`answered`) and a GST question with one part not found (`partial`). The sixth, a POSH
+question about "a workplace with fewer than ten workers", returned `needs_fact` with a meaningless ask, because the fact
+extractor recorded that condition as a stated fact and so treated a general question as personal. This is the upstream
+fault noted for the answer agent; the orchestrator acted correctly on what it was given.
+
+**Extra search did not help.** With it on, the GST payment question still found nothing, and the two questions the Act
+does not answer gained no wrong evidence. It adds a job without adding correct evidence in these measurements, so it stays off,
+as the POC also found. It should be enabled only after a larger check shows it adds correct evidence. Nothing in the
+live graph calls the orchestrator yet.
 
 ### `workflow.py`
 

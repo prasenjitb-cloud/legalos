@@ -29,6 +29,7 @@ chatbot/
     ├── contextCompactor.py
     ├── answerAgent.py
     ├── evaluator.py
+    ├── orchestrator.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -438,6 +439,31 @@ It prints the answer and then a verdict for the answer and for each question par
 problem). Each finding names a specific detail and, for an omission, quotes the exact source text that
 the answer left out. `missing_details` lists what to look for next. See the
 [evaluator notes](legalos_rag/README.md#evaluatorpy) for exactly what is checked and what it cannot see.
+
+## Answer with the orchestrator
+
+This runs the whole new path as one LangGraph graph and decides what to do after each check. It needs
+the same inputs as the answer agent and Ollama running:
+
+```bash
+python -m chatbot.legalos_rag.orchestrator --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "What are the conditions for divorce by mutual consent, and what does the Act provide about custody of minor children?"
+```
+
+It prints a `Status`, the jobs it ran and the path it took, then the answer. The status is one of:
+
+| Status | Meaning |
+| --- | --- |
+| `answered` | The answer passed the evaluator. |
+| `needs_fact` | A decisive fact is missing; the command prints what to ask the user. |
+| `partial` | Some parts have no evidence or the evaluator still finds omissions; the missing details are printed. |
+| `no_evidence` | Nothing was found in the Act for any part. |
+| `failed_checks` | The evaluator found a citation or unsupported-claim problem; nothing was repaired. |
+| `call_limit` | The job limit was reached before the answer passed. |
+
+The settings are in the `orchestrator` object of `config/poc_sources.json`: `max_calls` (jobs per question, 8),
+`max_repairs` (1), `allow_extra_search` (false) and `max_searches` (1). Extra search is off because it did not
+add correct evidence in the measurements. See the [orchestrator notes](legalos_rag/README.md#orchestratorpy).
 
 ---
 

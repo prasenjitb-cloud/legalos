@@ -69,6 +69,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── contextCompactor.py # Shorten evidence for the answer step, keeping every condition
 │       ├── answerAgent.py     # Sourced answer: model explains the law, code states what applies
 │       ├── evaluator.py       # Check an answer's citations, claims and omitted conditions
+│       ├── orchestrator.py    # LangGraph controller: next job from the evaluator, within a call limit
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -174,6 +175,7 @@ The [Applicability Agent](chatbot/README.md#assess-what-can-be-said-about-a-situ
 and the [context compactor](chatbot/README.md#compact-the-evidence-for-the-answer-step) prepares the evidence text for the answer step.
 The [Answer Agent](chatbot/README.md#answer-a-question-from-a-verified-act) writes a sourced answer for each part of the question,
 and the [evaluator](chatbot/README.md#evaluate-an-answer) checks its citations, claims and omitted conditions.
+The [orchestrator](chatbot/README.md#answer-with-the-orchestrator) runs them as one graph and decides the next job, within a call limit.
 
 ## AWS Deployment
 

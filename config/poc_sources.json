@@ -3,6 +3,7 @@
   "pdf_directory": "./factsDB/centralActPdfs/data",
   "output_file": "./factsDB/sectionCorpus/poc_sources.json",
   "review_file": "./factsDB/sectionCorpus/poc_source_review.json",
+  "orchestrator": {"max_calls": 8, "max_repairs": 1, "allow_extra_search": false, "max_searches": 1},
   "sources": [
     {
       "act_id": "posh_2013",
