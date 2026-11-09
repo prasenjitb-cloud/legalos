@@ -22,6 +22,7 @@ chatbot/
     ├── referenceAgent.py
     ├── keywordSearch.py
     ├── retriever.py
+    ├── evidenceFilter.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -302,6 +303,23 @@ The output lists `results`, best first. Each has the `score`, whether it was `fo
 `section` (text, pages, footnotes). An Act that has not passed its source check is refused.
 See the [retriever notes](legalos_rag/README.md#retrieverpy) for how results are merged and
 what was measured.
+
+## Filter retrieved sections by the evidence wanted
+
+A search can return a section that only mentions the topic, such as a duties section for a
+question about filing a complaint. This command retrieves sections as above and then asks
+the local model, for each one, which sentence states the evidence wanted. It needs the same
+inputs as the retriever, and Ollama running with the model in the config:
+
+```bash
+python -m chatbot.legalos_rag.evidenceFilter --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act posh_2013 --question "How do I file a complaint of sexual harassment?" --target "complaint filing process"
+```
+
+The command prints three lists: `kept` (each with the `support_quote`, the sentence that
+states the evidence), `rejected` (with a `reason`) and `unchecked` (the model failed on it).
+It does not decide an answer. See the
+[filter notes](legalos_rag/README.md#evidencefilterpy) for how it works and what was measured.
 
 ---
 

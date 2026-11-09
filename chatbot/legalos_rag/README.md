@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, and `retriever` merges keyword and vector search.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, and `evidenceFilter` drops results that only mention the topic.
 
 ---
 
@@ -21,6 +21,7 @@ legalos_rag/
 ├── referenceAgent.py
 ├── keywordSearch.py
 ├── retriever.py
+├── evidenceFilter.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -300,6 +301,42 @@ Merging was best overall but not on every request: it lost two definition reques
 vector search alone found, and no method found "persons liable for registration". Rule and
 definition requests are the weak spot. The query rewriter was tried on one informal question
 and not measured. Nothing in the live graph calls the retriever yet.
+
+### `evidenceFilter.py`
+
+`filter_evidence(question, target, candidates, slm)` takes the `results` of `retriever.retrieve`
+and returns `{"kept": [...], "rejected": [...], "unchecked": [...]}`.
+
+- **Passage**: the whole section when it is at most 3,000 characters; otherwise the section text
+  at its first three matching excerpts, so a very long section such as a definitions list does
+  not overflow the model.
+- **Judgement**: the passage is split into numbered sentences and the model, through
+  `structuredCall.ask_model`, returns the number of the sentence that states the wanted detail,
+  or 0. The prompt says that a passage which only mentions the same topic, or answers a
+  different question in the same Act, does not count.
+- **Support**: a kept candidate carries that sentence as `support_quote`. A sentence number that
+  is not in the passage is rejected. Because the model names a number, not text, the support is
+  always real passage text.
+- **Failure**: a model or parse error leaves the candidate `unchecked` so the caller decides.
+
+Measured with `qwen2.5:3b-instruct` on 23 requests across the five checked Acts (15 used while
+building the filter, 8 held out). Each request had the retriever's top 3 sections plus any needed
+section it missed. Labels were fixed before running: needed sections, borderline sections (not
+scored) and distractors, which are every other section:
+
+| | Needed sections kept | Distractors rejected |
+| --- | ---: | ---: |
+| First change, 15 requests | 7 of 19 | 23 of 24 |
+| After numbered sentences and fuller passages, 15 requests (tuned on) | 15 of 19 | 18 of 24 |
+| Same change on 8 held-out requests, before | 6 of 8 | 17 of 17 |
+| Same change on 8 held-out requests, after | 8 of 8 | 13 of 17 |
+
+After the change, 23 of 27 needed sections are kept and 31 of 41 distractors are rejected. The
+first version was too strict and lost needed sections; the change recovers them but lets some
+distractors through, for example the definitions section for a filing question. With no filter,
+every needed section is kept and no distractor is rejected. The result is a candidate list for
+the Evidence Agent and evaluator to check, not proof that a section answers the question.
+Nothing in the live graph calls the filter yet.
 
 ### `workflow.py`
 
