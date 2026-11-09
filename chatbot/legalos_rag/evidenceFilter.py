@@ -13,6 +13,7 @@ from chatbot.legalos_rag import structuredCall
 
 _MAX_PASSAGES = 3
 _WHOLE_SECTION_CHARS = 3000
+_MIN_SENTENCE_CHARS = 15
 
 
 class _Verdict(pydantic.BaseModel):
@@ -53,7 +54,16 @@ def _passage(candidate: dict) -> str:
 
 
 def _sentences(passage: str) -> list[str]:
-    return [piece for piece in re.split(r"(?<=[.;])\s+", passage) if piece.strip()]
+    """Split at full stops and semicolons, joining tiny pieces such as "9." to the next one."""
+    sentences, carried = [], ""
+    for piece in re.split(r"(?<=[.;])\s+", passage):
+        piece = f"{carried} {piece}".strip()
+        if len(piece) < _MIN_SENTENCE_CHARS:
+            carried = piece
+        else:
+            sentences.append(piece)
+            carried = ""
+    return sentences + ([carried] if carried else [])
 
 
 def filter_evidence(question: str, target: str, candidates: list[dict], slm) -> dict:

@@ -326,16 +326,17 @@ scored) and distractors, which are every other section:
 
 | | Needed sections kept | Distractors rejected |
 | --- | ---: | ---: |
-| First change, 15 requests | 7 of 19 | 23 of 24 |
-| After numbered sentences and fuller passages, 15 requests (tuned on) | 15 of 19 | 18 of 24 |
-| Same change on 8 held-out requests, before | 6 of 8 | 17 of 17 |
-| Same change on 8 held-out requests, after | 8 of 8 | 13 of 17 |
+| First version (model copies a quote), 15 requests | 7 of 19 | 23 of 24 |
+| First version, 8 held-out requests | 6 of 8 | 17 of 17 |
+| Numbered sentences and fuller passages, 15 requests (tuned on) | 13 of 19 | 16 of 24 |
+| Numbered sentences and fuller passages, 8 held-out requests | 7 of 8 | 12 of 17 |
 
-After the change, 23 of 27 needed sections are kept and 31 of 41 distractors are rejected. The
-first version was too strict and lost needed sections; the change recovers them but lets some
-distractors through, for example the definitions section for a filing question. With no filter,
-every needed section is kept and no distractor is rejected. The result is a candidate list for
-the Evidence Agent and evaluator to check, not proof that a section answers the question.
+The first version was too strict: it kept only 13 of 27 needed sections. The numbered-sentence
+version keeps 20 of 27 (74%) and rejects 28 of 41 distractors (68%). With no filter, every needed
+section is kept and no distractor is rejected. The filter is therefore a partial improvement and
+does not yet meet the aim of rejecting distractors without losing needed sections. Its output is a
+candidate list for the Evidence Agent and evaluator to check, not proof that a section answers the
+question.
 Nothing in the live graph calls the filter yet.
 
 ### `workflow.py`
