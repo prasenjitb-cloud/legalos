@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, `answerAgent` writes the answer, `evaluator` checks it, and `orchestrator` runs them as a graph.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, `answerAgent` writes the answer, `evaluator` checks it, `orchestrator` runs them as a graph, and `newPipeline` connects that graph to the CLI and batch runner.
 
 ---
 
@@ -29,6 +29,7 @@ legalos_rag/
 ├── answerAgent.py
 ├── evaluator.py
 ├── orchestrator.py
+├── newPipeline.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -634,8 +635,27 @@ fault noted for the answer agent; the orchestrator acted correctly on what it wa
 
 **Extra search did not help.** With it on, the GST payment question still found nothing, and the two questions the Act
 does not answer gained no wrong evidence. It adds a job without adding correct evidence in these measurements, so it stays off,
-as the POC also found. It should be enabled only after a larger check shows it adds correct evidence. Nothing in the
-live graph calls the orchestrator yet.
+as the POC also found. It should be enabled only after a larger check shows it adds correct evidence. The orchestrator's result also lists the `sources` it cited.
+
+### `newPipeline.py`
+
+`load_pipeline(config, slm)` reads the optional `pipeline` object of a RAG config: `mode` (`legacy`, the default, `new` or `both`),
+`act_id` and `sources_config`. It returns `None` for `legacy`, so the CLI and batch runner then behave exactly as before. A bad mode
+or a missing `act_id` or `sources_config` is a clear error. `run_new(pipeline, question, act_id=None)` runs the orchestrator
+for one question and returns a record: `status`, `answer`, `asks`, `missing`, `sources`, `decisions`, `calls`, `verdict` and `seconds`
+(or `status: error` with the message). It opens the vector store for the question and closes it afterwards, because the local Qdrant
+store allows one open client at a time and the current path opens its own; the cost is a few seconds of model loading per question.
+`format_record(record)` is the text the CLI prints.
+
+`chatbot.main.run_rag_loop` and `promptRunBatch.prompt_run_batch` take the loaded pipeline as an optional argument. In `both` mode
+the CLI prints the new path first and then the current one; the batch writes both results on one line.
+
+Run end to end with `qwen2.5:3b-instruct`: the CLI in `legacy`, `new` and `both` modes answered a Hindu Marriage Act
+question, and the batch runner in `legacy` and `both` modes ran three questions each. The legacy run file has the same keys as
+before, and in `both` mode each line has those keys plus `new`. In the matched pairs, the current path reported an answer for
+"What is the penalty for drunk driving?" run against the Hindu Marriage Act (it searches all Acts), while the new path correctly
+returned `no_evidence` for that Act; and the new path asked for facts on "Where do I file a consumer complaint?", the known fault
+of treating a first-person question as personal. Nothing else in the repository calls the new path. The API is covered in the next step.
 
 ### `workflow.py`
 

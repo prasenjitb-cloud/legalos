@@ -4,6 +4,7 @@ import json
 import datetime
 import pathlib
 import chatbot.legalos_rag
+import chatbot.legalos_rag.newPipeline
 import chatbot.legalos_rag.workflow
 import chatbot.main
 # -------------------- LOAD QUESTIONS --------------------
@@ -29,7 +30,7 @@ def _write_run_outputs_dir(outputpath):
 
 
 # -------------------- PROMPT RUN BATCH --------------------
-def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, slm, model_name, outputpath):
+def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, slm, model_name, outputpath, new_pipeline=None):
     """
     Run the RAG pipeline for every question in the question set and append each result to a JSONL run file.
 
@@ -43,6 +44,9 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
         slm: Small Language Model instance.
         model_name: Model name (for metadata).
         outputpath: Directory for the run output file.
+        new_pipeline: Settings from newPipeline.load_pipeline, or None to run only the current path.
+            In "both" mode each record also has a "new" object; in "new" mode it has only that.
+            A question may carry its own "act_id".
     """
     outputs_path = _write_run_outputs_dir(outputpath)
     questions = _load_questions(questionsetfile)
@@ -66,6 +70,8 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
         "promptTemplate": promptTemplate,
         "type": "metadata",
     }
+    if new_pipeline:
+        metadata.update({"pipeline": new_pipeline["mode"], "act_id": new_pipeline["act_id"]})
 
     with open(run_path, "w", encoding="utf-8") as f:
         f.write(json.dumps(metadata, ensure_ascii=False) + "\n")
@@ -78,6 +84,17 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
                 if not question_text.strip():
                     print("Empty question. Skipping.")
                     continue
+
+                new_record = None
+                if new_pipeline:
+                    new_record = chatbot.legalos_rag.newPipeline.run_new(
+                        new_pipeline, question_text, item.get("act_id"))
+                    if new_pipeline["mode"] == "new":
+                        f.write(json.dumps({"question_id": qid, "question": question_text, "new": new_record},
+                                           ensure_ascii=False) + "\n")
+                        f.flush()
+                        print(f"New path run complete for {qid}")
+                        continue
 
                 result, retrieved_chunks, _, rewritten_queries = chatbot.main.run_rag(
                     question_text,
@@ -95,6 +112,8 @@ def prompt_run_batch(db_path: str, promptTemplate: str, questionsetfile: str, sl
                     "retrieved_chunks": retrieved_chunks if retrieved_chunks else "",
                     "output": result.model_dump() if result else None,
                 }
+                if new_record:
+                    record["new"] = new_record
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
                 f.flush()
                 print(f"RAG run complete for {qid}")
@@ -152,7 +171,7 @@ def main() -> None:
     outputpath= pathlib.Path(outputpath).resolve()
     questionsetfile = pathlib.Path(questionsetfile).resolve()
 
-    prompt_run_batch(db_path=db_path, promptTemplate=promptTemplate["text"], questionsetfile=questionsetfile, slm=slm, model_name=model_name, outputpath=outputpath)
+    prompt_run_batch(db_path=db_path, promptTemplate=promptTemplate["text"], questionsetfile=questionsetfile, slm=slm, model_name=model_name, outputpath=outputpath, new_pipeline=chatbot.legalos_rag.newPipeline.load_pipeline(config, slm))
            
 
 

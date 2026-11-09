@@ -66,6 +66,28 @@ python -m test.promptTester.promptRunBatch --config test/promptTester/config/v1.
 
 Use a different config file to change the vector DB, template, or question set.
 
+## Running the new path and comparing it
+
+With a `pipeline` object in the batch config (see the [chatbot README](../../chatbot/README.md#run-the-new-path-from-the-cli-or-the-batch-runner)),
+the runner can also run the new graph. A question may carry its own `"act_id"`; otherwise the config's Act is used.
+
+```bash
+python -m test.promptTester.promptRunBatch --config test/promptTester/config/new_path.json
+```
+
+`test/promptTester/config/new_path.json` runs both paths over `questionSet_new_path.json` (four questions, each with its Act).
+The run file changes only when `pipeline.mode` is `new` or `both`:
+
+- **Line 1 (metadata)** also has `pipeline` and `act_id`.
+- **`both`:** each question line keeps the keys above unchanged and adds a `new` object, so the old and new result for
+  the same question are on one line. **`new`:** each line has `question_id`, `question` and `new` only.
+- **`new` object:** `status` (`answered`, `needs_fact`, `partial`, `no_evidence`, `failed_checks`, `call_limit` or `error`), `answer`,
+  `asks`, `missing` (the gaps), `sources` (source ID, Act, section and pages), `decisions` (the path through the graph), `calls`
+  (jobs run), `verdict` (the evaluator's) and `seconds`. Without a `pipeline` object the file is exactly as before.
+
+The two paths are not searching the same material: the current path searches all Acts in the vector database, the new path
+one checked Act. Review the pairs by hand; the evaluator script above scores only the current path's `output`.
+
 ## Files
 
 - **promptRunBatch.py** – Entrypoint: loads config, runs the batch, appends each result to `outputpath/run_<run_id>.jsonl`.

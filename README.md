@@ -70,6 +70,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── answerAgent.py     # Sourced answer: model explains the law, code states what applies
 │       ├── evaluator.py       # Check an answer's citations, claims and omitted conditions
 │       ├── orchestrator.py    # LangGraph controller: next job from the evaluator, within a call limit
+│       ├── newPipeline.py     # Runs the orchestrator for the CLI and batch runner from the config
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -176,6 +177,7 @@ and the [context compactor](chatbot/README.md#compact-the-evidence-for-the-answe
 The [Answer Agent](chatbot/README.md#answer-a-question-from-a-verified-act) writes a sourced answer for each part of the question,
 and the [evaluator](chatbot/README.md#evaluate-an-answer) checks its citations, claims and omitted conditions.
 The [orchestrator](chatbot/README.md#answer-with-the-orchestrator) runs them as one graph and decides the next job, within a call limit.
+The CLI and the batch runner can run it next to the current path, chosen by a [`pipeline` setting](chatbot/README.md#run-the-new-path-from-the-cli-or-the-batch-runner) in the config.
 
 ## AWS Deployment
 

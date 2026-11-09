@@ -142,6 +142,8 @@ def build_orchestrator(config: dict, vectorstore, slm):
             "status": status, "question": state["question"], "act_id": state["act_id"],
             "answer": state["answer"]["text"] if state["answer"]["parts"] else "", "asks": asks,
             "missing": list(dict.fromkeys(not_found + evaluation["missing_details"])) if status != "answered" else [],
+            "sources": [{"source_id": c["source_id"], "act_id": c["act_id"], "section": c["section"], "pages": c["pages"]}
+                        for part in state["answer"]["parts"] for c in part["citations"]],
             "evaluation": evaluation, "calls": state["calls"], "trace": state["trace"]}}
 
     builder = StateGraph(OrchestratorState)

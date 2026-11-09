@@ -3,6 +3,7 @@ import json
 import argparse
 
 import chatbot.legalos_rag.runRag
+import chatbot.legalos_rag.newPipeline
 import chatbot.legalos_rag.workflow
 import pathlib
 import chatbot.legalos_rag
@@ -61,6 +62,7 @@ def run_rag_loop(
     exclude_model_name: bool,
     exclude_prompt: bool,
     slm,
+    new_pipeline: dict | None = None,
 ) -> None:
     """
     Run the interactive legal Q&A session: prompt for questions, invoke RAG, log, and print.
@@ -90,6 +92,13 @@ def run_rag_loop(
         if not query:
             print("Empty question. Try again.")
             continue
+
+        # The new path runs first; in "new" mode the current path is skipped.
+        if new_pipeline is not None:
+            print(chatbot.legalos_rag.newPipeline.format_record(
+                chatbot.legalos_rag.newPipeline.run_new(new_pipeline, query)))
+            if new_pipeline["mode"] == "new":
+                continue
 
         result, _, final_prompt, _ = run_rag(
             query,
@@ -166,6 +175,7 @@ def main():
         logfile=logging.logfile,
         exclude_model_name=logging.exclude_model_name,
         exclude_prompt=logging.exclude_prompt,
+        new_pipeline=chatbot.legalos_rag.newPipeline.load_pipeline(config, slm),
     )
 
 

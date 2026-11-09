@@ -1,0 +1,22 @@
+[
+  {
+    "id": "n1",
+    "question": "What are the conditions for divorce by mutual consent?",
+    "act_id": "hma_1955"
+  },
+  {
+    "id": "n2",
+    "question": "Where can a complaint of sexual harassment be made, and what is the filing deadline?",
+    "act_id": "posh_2013"
+  },
+  {
+    "id": "n3",
+    "question": "Where can a consumer complaint be filed?",
+    "act_id": "cpa_2019"
+  },
+  {
+    "id": "n4",
+    "question": "What is the penalty for drunk driving?",
+    "act_id": "hma_1955"
+  }
+]

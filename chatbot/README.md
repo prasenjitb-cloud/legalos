@@ -30,6 +30,7 @@ chatbot/
     ├── answerAgent.py
     ├── evaluator.py
     ├── orchestrator.py
+    ├── newPipeline.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -464,6 +465,28 @@ It prints a `Status`, the jobs it ran and the path it took, then the answer. The
 The settings are in the `orchestrator` object of `config/poc_sources.json`: `max_calls` (jobs per question, 8),
 `max_repairs` (1), `allow_extra_search` (false) and `max_searches` (1). Extra search is off because it did not
 add correct evidence in the measurements. See the [orchestrator notes](legalos_rag/README.md#orchestratorpy).
+
+## Run the new path from the CLI or the batch runner
+
+The interactive CLI and the batch runner can run the new graph through the config. Add a `pipeline`
+object to the RAG config (for example a copy of `config/rag_v1.json`):
+
+```json
+"pipeline": { "mode": "both", "act_id": "hma_1955", "sources_config": "./config/poc_sources.json" }
+```
+
+- `mode` is `legacy` (the default, and what you get when `pipeline` is absent: the current path, unchanged),
+  `new` (only the new graph) or `both` (the new graph first, then the current path, for comparison).
+- `act_id` is the one checked Act the new path searches; `sources_config` is the source-loading config. The new
+  path needs the loader, the source check and the vector database to have been set up as above, and Ollama.
+
+```bash
+python -m chatbot.main --config ./config/rag_v1.json        # with the pipeline object added
+```
+
+In `new` and `both` modes each answer starts with a line such as `New path (answered; 3 jobs, 104.5 s)`, then the
+answer, any request for a missing fact, and what is still missing. The current path's answer follows in `both` mode.
+Setup and the batch runner's output are described in the [prompt tester README](../test/promptTester/README.md#running-the-new-path-and-comparing-it).
 
 ---
 
