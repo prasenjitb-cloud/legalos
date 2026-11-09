@@ -487,6 +487,8 @@ python -m chatbot.main --config ./config/rag_v1.json        # with the pipeline 
 In `new` and `both` modes each answer starts with a line such as `New path (answered; 3 jobs, 104.5 s)`, then the
 answer, any request for a missing fact, and what is still missing. The current path's answer follows in `both` mode.
 Setup and the batch runner's output are described in the [prompt tester README](../test/promptTester/README.md#running-the-new-path-and-comparing-it).
+The AWS API reads the same `pipeline` object; see the [deployment guide](../aws_deployment/README.md#-choosing-the-pipeline-and-reading-the-response).
+The new path has not passed its [release check](../test/promptTester/README.md#release-check).
 
 ---
 

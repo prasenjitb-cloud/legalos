@@ -655,7 +655,9 @@ question, and the batch runner in `legacy` and `both` modes ran three questions 
 before, and in `both` mode each line has those keys plus `new`. In the matched pairs, the current path reported an answer for
 "What is the penalty for drunk driving?" run against the Hindu Marriage Act (it searches all Acts), while the new path correctly
 returned `no_evidence` for that Act; and the new path asked for facts on "Where do I file a consumer complaint?", the known fault
-of treating a first-person question as personal. Nothing else in the repository calls the new path. The API is covered in the next step.
+of treating a first-person question as personal. `aws_deployment/deployRun.py` runs the same functions behind the `/chat` route, with a request timeout and one response format (see
+the [deployment guide](../../aws_deployment/README.md#-choosing-the-pipeline-and-reading-the-response)). The new path has not passed its
+[release check](../../test/promptTester/README.md#release-check).
 
 ### `workflow.py`
 

@@ -178,6 +178,8 @@ The [Answer Agent](chatbot/README.md#answer-a-question-from-a-verified-act) writ
 and the [evaluator](chatbot/README.md#evaluate-an-answer) checks its citations, claims and omitted conditions.
 The [orchestrator](chatbot/README.md#answer-with-the-orchestrator) runs them as one graph and decides the next job, within a call limit.
 The CLI and the batch runner can run it next to the current path, chosen by a [`pipeline` setting](chatbot/README.md#run-the-new-path-from-the-cli-or-the-batch-runner) in the config.
+The AWS Flask API uses the same graph and returns one [response format](aws_deployment/README.md#-choosing-the-pipeline-and-reading-the-response) for both paths.
+The new path has **not passed** its [release check](test/promptTester/README.md#release-check): it is for evaluation, not for answering users.
 
 ## AWS Deployment
 

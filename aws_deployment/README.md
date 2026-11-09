@@ -431,14 +431,14 @@ Press **Enter** - this runs quickly
 **📍 Still in your LOCAL terminal, in your legalos directory:**
 
 ```bash
-scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB deployRun.py aws_deployment/requirements.txt ubuntu@<YOUR_EC2_PUBLIC_IP>:~/legalos/
+scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB aws_deployment/deployRun.py aws_deployment/requirements.txt ubuntu@<YOUR_EC2_PUBLIC_IP>:~/legalos/
 ```
 
 **Replace** `<YOUR_EC2_PUBLIC_IP>` with your IP
 
 **Example:**
 ```bash
-scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB deployRun.py aws_deployment/requirements.txt ubuntu@3.6.205.42:~/legalos/
+scp -i ~/.ssh/legalos-key.pem -r chatbot config vectorDB aws_deployment/deployRun.py aws_deployment/requirements.txt ubuntu@3.6.205.42:~/legalos/
 ```
 
 Press **Enter**
@@ -462,6 +462,50 @@ requirements.txt
 - `vectorDB/` - Pre-created vector database (~350MB)
 - `deployRun.py` - Flask API server
 - `aws_deployment/requirements.txt` - Python dependencies
+
+---
+
+## 🔀 Choosing the pipeline and reading the response
+
+`deployRun.py` builds the same graph as the CLI and the batch runner. By default it runs the **current path** and
+needs only the files above. To run the **new path** (sourced answers from one checked Act), add a `pipeline` object to
+`config/rag_v1.json`, and upload the generated source files as well:
+
+```json
+"pipeline": { "mode": "new", "act_id": "hma_1955", "sources_config": "./config/poc_sources.json" },
+"api": { "timeout_seconds": 300 }
+```
+
+```bash
+scp -i ~/.ssh/legalos-key.pem -r config/poc_sources.json ubuntu@<YOUR_EC2_PUBLIC_IP>:~/legalos/config/
+scp -i ~/.ssh/legalos-key.pem -r factsDB/sectionCorpus ubuntu@<YOUR_EC2_PUBLIC_IP>:~/legalos/factsDB/
+```
+
+`factsDB/sectionCorpus` holds the files made by the source loader and the source check (see `chatbot/README.md`);
+the PDFs are not needed to serve requests. `mode` is `legacy` (the default), `new` or `both`. In `both` mode the new
+answer is returned and the current path's result is added under `legacy`. A request may name another checked Act with
+`"act_id"`; an unknown Act is refused.
+
+Every response has the same JSON keys, so a client can read any path:
+
+| Key | Meaning |
+| --- | --- |
+| `status` | `answered`, `partial`, `needs_fact`, `no_evidence`, `failed_checks`, `call_limit`, `not_found` (current path), `error` or `timeout` |
+| `answer_found`, `reply`, `citations` | The original keys. `reply` is the answer text; `citations` is filled by the current path only |
+| `asks` | What to ask the user when a decisive fact is missing (`needs_fact`) |
+| `missing` | What was not found or is still missing |
+| `sources` | Act, section, pages and source ID of each section cited (new path) |
+| `calls`, `seconds`, `mode` | Jobs run, time taken, and the path used |
+| `error` | Present for `error` and `timeout` |
+
+An empty message or unknown Act returns HTTP 400; a failed run returns 500; a request longer than `api.timeout_seconds`
+returns 504 with `status: timeout`. Requests are handled one at a time (the local vector store allows one open client),
+so a request that times out keeps running in the background and the next request waits for it to finish.
+
+```bash
+curl -X POST http://<YOUR_EC2_PUBLIC_IP>:5000/chat -H "Content-Type: application/json" \
+  -d '{"message": "What are the conditions for divorce by mutual consent?", "act_id": "hma_1955"}'
+```
 
 ---
 
@@ -1154,7 +1198,7 @@ sudo systemctl stop legalos
 
 # Update files from local (run from your legalos directory)
 rsync -avz -e "ssh -i ~/.ssh/legalos-key.pem" \
-  chatbot/ config/ vectorDB/ deployRun.py aws_deployment/requirements.txt \
+  chatbot/ config/ vectorDB/ aws_deployment/deployRun.py aws_deployment/requirements.txt \
   ubuntu@<EC2_IP>:~/legalos/
 ```
 

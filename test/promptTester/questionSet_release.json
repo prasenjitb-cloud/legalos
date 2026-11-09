@@ -1,0 +1,137 @@
+[
+  {
+    "id": "r01",
+    "question": "Who is an aggrieved woman under the POSH Act?",
+    "act_id": "posh_2013",
+    "expected_sections": [
+      "2"
+    ]
+  },
+  {
+    "id": "r02",
+    "question": "What are the duties and powers of the District Officer?",
+    "act_id": "posh_2013",
+    "expected_sections": [
+      "20"
+    ]
+  },
+  {
+    "id": "r03",
+    "question": "How is compensation determined for the aggrieved woman?",
+    "act_id": "posh_2013",
+    "expected_sections": [
+      "15"
+    ]
+  },
+  {
+    "id": "r04",
+    "question": "What is the legal status of children born of void or voidable marriages?",
+    "act_id": "hma_1955",
+    "expected_sections": [
+      "16"
+    ]
+  },
+  {
+    "id": "r05",
+    "question": "What alternate relief can the court grant in a divorce petition?",
+    "act_id": "hma_1955",
+    "expected_sections": [
+      "13A"
+    ]
+  },
+  {
+    "id": "r06",
+    "question": "Which court is a petition under the Hindu Marriage Act presented to?",
+    "act_id": "hma_1955",
+    "expected_sections": [
+      "19"
+    ]
+  },
+  {
+    "id": "r07",
+    "question": "What is the Child Welfare Committee?",
+    "act_id": "jja_2015",
+    "expected_sections": [
+      "27"
+    ]
+  },
+  {
+    "id": "r08",
+    "question": "What are observation homes?",
+    "act_id": "jja_2015",
+    "expected_sections": [
+      "47",
+      "2"
+    ]
+  },
+  {
+    "id": "r09",
+    "question": "What is foster care for a child?",
+    "act_id": "jja_2015",
+    "expected_sections": [
+      "44"
+    ]
+  },
+  {
+    "id": "r10",
+    "question": "What is the time of supply of services?",
+    "act_id": "cgst_2017",
+    "expected_sections": [
+      "13"
+    ]
+  },
+  {
+    "id": "r11",
+    "question": "When can offences under the GST Act be compounded?",
+    "act_id": "cgst_2017",
+    "expected_sections": [
+      "138"
+    ]
+  },
+  {
+    "id": "r12",
+    "question": "What are the transitional arrangements for input tax credit?",
+    "act_id": "cgst_2017",
+    "expected_sections": [
+      "140"
+    ]
+  },
+  {
+    "id": "r13",
+    "question": "What is the procedure for mediation in a consumer dispute?",
+    "act_id": "cpa_2019",
+    "expected_sections": [
+      "79",
+      "80",
+      "37"
+    ]
+  },
+  {
+    "id": "r14",
+    "question": "What are the qualifications of the President of the State Commission?",
+    "act_id": "cpa_2019",
+    "expected_sections": [
+      "43"
+    ]
+  },
+  {
+    "id": "r15",
+    "question": "What is the punishment for false or misleading advertisement?",
+    "act_id": "cpa_2019",
+    "expected_sections": [
+      "89"
+    ]
+  },
+  {
+    "id": "r16",
+    "question": "What is the penalty for drunk driving?",
+    "act_id": "hma_1955",
+    "expected_sections": []
+  },
+  {
+    "id": "r17",
+    "question": "What is the age of majority?",
+    "act_id": "cgst_2017",
+    "expected_sections": []
+  }
+]

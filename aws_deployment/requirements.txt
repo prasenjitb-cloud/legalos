@@ -12,6 +12,12 @@ langchain-core
 langchain-community
 langchain-huggingface
 
+# ---- Graph orchestration ----
+langgraph>=1.2,<1.3
+
+# ---- Source files (imported by the source check) ----
+pypdf
+
 # ---- Embeddings ----
 sentence-transformers
 

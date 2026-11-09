@@ -88,6 +88,38 @@ The run file changes only when `pipeline.mode` is `new` or `both`:
 The two paths are not searching the same material: the current path searches all Acts in the vector database, the new path
 one checked Act. Review the pairs by hand; the evaluator script above scores only the current path's `output`.
 
+## Release check
+
+`test/promptTester/questionSet_release.json` is a fresh set of 17 questions for the five Acts that passed their source check
+(three answerable questions for each of the five Acts, plus two questions the Acts cannot answer: one for Hindu Marriage and one for GST). Each has an
+`act_id` and the sections that answer it (`expected_sections`), which I fixed from the Acts' section titles before any run. Motor Vehicles is
+not enabled: it has not passed its source check. Run it with the new path only:
+
+```bash
+python -m test.promptTester.promptRunBatch --config test/promptTester/config/release.json
+```
+
+Criteria, fixed before the run. An answerable question passes when its `new.status` is `answered`, `partial` or `needs_fact` and an expected section
+is among `new.sources`. A question the Act cannot answer passes only when the status is `no_evidence`. The release bar is: every Act passes at
+least 2 of its 3 answerable questions, both unanswerable questions pass, and at least 14 of 17 pass overall.
+
+**Result with `qwen2.5:3b-instruct`: not met.** 10 of 17 passed (59%). Both unanswerable questions passed, but three Acts
+(Hindu Marriage, GST and Juvenile Justice) passed only 1 of their 3 answerable questions, and the overall total is 4 short of 14.
+
+| Act | Answerable passed | Failed |
+| --- | ---: | --- |
+| Consumer Protection | 3 of 3 | |
+| POSH | 2 of 3 | duties of the District Officer: cited sections 6, 21 and 25, not 20 |
+| Hindu Marriage | **1 of 3** answerable | alternate relief in divorce: cited 23A and 14, not 13A; the court a petition goes to: `failed_checks` |
+| Juvenile Justice | **1 of 3** | Child Welfare Committee: cited the definitions section, not 27; observation homes: `no_evidence` |
+| GST | **1 of 3** answerable | time of supply of services and transitional input tax credit: `failed_checks` |
+
+Three questions ended in `failed_checks`, which is the evaluator finding a citation or unsupported-claim problem. Several others were
+`answered` while citing the wrong sections, so **`answered` does not mean correct**: the evaluator checks sources and omissions, not whether
+the right section was found. Each question took about 100 seconds (28 minutes for the set). CLI, batch and API agree on the same question:
+status, answer and sources were identical in the check. The new path should not be used to answer users until retrieval, the evidence filter and
+the condition check improve and this set passes.
+
 ## Files
 
 - **promptRunBatch.py** – Entrypoint: loads config, runs the batch, appends each result to `outputpath/run_<run_id>.jsonl`.
