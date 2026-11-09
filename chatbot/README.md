@@ -25,6 +25,7 @@ chatbot/
     ├── evidenceFilter.py
     ├── evidenceAgent.py
     ├── conditionCheck.py
+    ├── applicabilityAgent.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -362,6 +363,26 @@ model is not called. The `overall` result is `not_met`, `excepted`, `met` or `un
 condition wrongly even when it cites a real fact, for example on an age comparison; see the
 [condition check notes](legalos_rag/README.md#conditioncheckpy) for what was measured. The result
 should be reviewed by the evaluator before anything is said about a user's case.
+
+## Assess what can be said about a situation
+
+For a question about the user's own situation, this command reads the facts they stated,
+gathers the evidence, checks the rule's conditions against those facts, and reports what can
+and cannot be said. It needs the same inputs as the evidence agent and Ollama running:
+
+```bash
+python -m chatbot.legalos_rag.applicabilityAgent --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "We have been living separately for three months and we both want a divorce. Can we get a divorce by mutual consent?"
+```
+
+Each question part gets a `finding`: `needs_fact` (with an `ask` quoting an open condition of the
+law, and a `conditional` note), `not_met_on_stated_facts`, `exception_applies`,
+`conditions_met_on_stated_facts`, `cannot_assess`, `general` (a question about the law, not the
+user's situation, so no facts are requested) or `no_evidence`. The conditions it rests on are
+listed with their statuses and the facts they cite.
+
+**No finding is a personal conclusion**, and the `ask` is not yet a polished question for the
+user. See the [agent notes](legalos_rag/README.md#applicabilityagentpy).
 
 ---
 

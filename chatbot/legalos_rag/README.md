@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, and `conditionCheck` marks a section's conditions against stated facts.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, and `applicabilityAgent` decides what can be said about a situation.
 
 ---
 
@@ -24,6 +24,7 @@ legalos_rag/
 ├── evidenceFilter.py
 ├── evidenceAgent.py
 ├── conditionCheck.py
+├── applicabilityAgent.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -425,6 +426,41 @@ a related rule is not reliably prevented from deciding a case. Later steps must 
 an assessment for the evaluator to check, and say nothing definite about a user's case from them.
 Comparing numbers and dates in code, or a stronger judge model, would be the next improvement.
 Nothing in the live graph calls the check yet.
+
+### `applicabilityAgent.py`
+
+`assess_applicability(config, vectorstore, act_id, question, slm)` runs `factExtractor` on the question,
+`evidenceAgent` for the evidence of each part, and `conditionCheck` on the top two sections of each part
+that was found. The decision is then made in code from the condition statuses, with no further model call:
+
+- **Personal or general**: a part is about a situation when the user stated facts or the question is in
+  the first person (I, my, we, our...). Otherwise it is `general` and no facts are requested.
+- **Finding**: `not_met_on_stated_facts` if a condition is `NOT_MET`; `exception_applies` if an exception is
+  `MET`; `needs_fact` if conditions are still `UNKNOWN`; `conditions_met_on_stated_facts` if all are met;
+  `cannot_assess` if no condition could be assessed (for example a section over 6,000 characters).
+- **Asking**: for `needs_fact` the `ask` quotes the longest open condition of the law, word for word, as
+  `Is this true in your case: "..."?`. It is a quote of the section, not text the model wrote. When some
+  conditions are met, `conditional` says how many appear met and that the result depends on those still unknown.
+- **Parts with no evidence** are `no_evidence` and carry the missing detail from the evidence agent.
+- Every part carries a note that condition statuses are an assessment for the evaluator to check.
+
+Measured with `qwen2.5:3b-instruct` on 6 questions about the POSH and Hindu Marriage Acts, with the allowed
+findings fixed beforehand: a timeliness question with a harassment date but no complaint date; the same
+with both dates (more than three months apart); a general time-limit question; a bride aged 17; separation
+of three months before a consent divorce; and a consent-divorce question with no facts.
+
+- **Finding type: 6 of 6** in the allowed set. The first run got the bride question wrong, because a
+  question about "they" has no first-person word; stated facts now also make a question personal.
+- **No ask on a general question and every ask an exact clause of a checked section: yes.**
+- **Ask quality is poor.** The two asks produced were exact clauses but not useful questions: for the
+  timeliness question it quoted the appeal section ("...sub-section (1) or sub-section (2) of section 14...")
+  because the evidence step ranked that section first, and for the consent-divorce question it quoted a
+  clause of the decree section, not the consent-divorce section. Quoting the law proves the text is real,
+  not that it is the decisive fact. A model-written question from the right condition, checked by the
+  evaluator, is the next improvement.
+- The condition check's own limits apply: statuses can be wrong (see `conditionCheck.py`).
+
+Nothing in the live graph calls the agent yet.
 
 ### `workflow.py`
 
