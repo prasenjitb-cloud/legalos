@@ -14,7 +14,7 @@ _SHORT_SECTION_CHARS = 3000
 _MIN_TOPIC_WORD = 5
 _OMITTED = "[...]"
 _ARTIFACTS = re.compile(r"\*(?:\s*\*)*")
-_QUALIFIER = re.compile(
+QUALIFIER = re.compile(
     r"\b(?:provided|except|unless|subject to|notwithstanding|explanation|illustration|exception|save|"
     r"only if|shall not|not less|not more|not later|not earlier|not exceeding|within|before|after|"
     r"at least|at most|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|"
@@ -27,7 +27,7 @@ _PLAIN_WORDS = {"under", "which", "shall", "where", "whose", "other", "their", "
                 "about", "after", "before", "would", "could", "being", "section", "provisions"}
 
 
-def _topic_words(*texts: str) -> set[str]:
+def topic_words(*texts: str) -> set[str]:
     words = (word for text in texts for word in re.findall(r"[a-z]+", text.lower()))
     return {word for word in words if len(word) >= _MIN_TOPIC_WORD and word not in _PLAIN_WORDS}
 
@@ -43,7 +43,7 @@ def _kept_sentences(section: dict, support: str, topic: set[str]) -> set[int]:
     kept = set()
     for number, sentence in enumerate(sentences):
         on_topic = bool(topic & set(re.findall(r"[a-z]+", sentence.lower())))
-        if number == 0 or sentence == support or on_topic or _LIST_ITEM.match(sentence) or _QUALIFIER.search(sentence):
+        if number == 0 or sentence == support or on_topic or _LIST_ITEM.match(sentence) or QUALIFIER.search(sentence):
             kept.add(number)
     return kept
 
@@ -60,7 +60,7 @@ def compact_evidence(parts: list[dict]) -> dict:
     """
     sections = {}
     for part in parts:
-        topic = _topic_words(part["question"], part.get("target", ""))
+        topic = topic_words(part["question"], part.get("target", ""))
         for item in part.get("evidence", []):
             provision = item["provision"]
             entry = sections.setdefault(item["source_id"], {

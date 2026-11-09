@@ -11,7 +11,7 @@ import pydantic
 from chatbot.legalos_rag import applicabilityAgent, contextCompactor, retriever, structuredCall
 
 
-_SECOND_PERSON = re.compile(
+SECOND_PERSON = re.compile(
     r"\byou(?:r)?\s+(?:are|can|may|will|must|do|have|cannot|can't|should|would|could|need|qualify|"
     r"complaint is|marriage is|petition is|case is)\b|\byou're\b",
     re.IGNORECASE,
@@ -21,7 +21,7 @@ _NUMBERS = re.compile(
     r"thirty|forty|fifty|sixty|ninety|hundred|thousand|lakh|crore)\b",
     re.IGNORECASE,
 )
-_SITUATION = {
+SITUATION = {
     "needs_fact": "Whether this applies to you depends on facts that have not been stated. {ask}",
     "not_met_on_stated_facts": "On the facts you stated, a condition of this rule appears not to be met. "
                                "This is an automated reading of the law and should be checked.",
@@ -53,7 +53,7 @@ _EXPLAIN_PROMPT = (
 )
 
 
-def _numbers(text: str) -> set[str]:
+def numbers_in(text: str) -> set[str]:
     return {token.lower() for token in _NUMBERS.findall(text)}
 
 
@@ -70,8 +70,8 @@ def _explain(question: str, evidence: list[dict], sections: list[dict], slm) -> 
     except Exception:
         return _quote_explanation(evidence), "quotes"
     explanation = written.explanation.strip()
-    source_numbers = _numbers(text)
-    if not explanation or _SECOND_PERSON.search(explanation) or not _numbers(explanation) <= source_numbers:
+    source_numbers = numbers_in(text)
+    if not explanation or SECOND_PERSON.search(explanation) or not numbers_in(explanation) <= source_numbers:
         return _quote_explanation(evidence), "quotes"
     return explanation, "model"
 
@@ -99,7 +99,7 @@ def write_answer(result: dict, slm) -> dict:
             items = found["evidence"]
             sections = [compact[item["source_id"]] for item in items]
             explanation, source = _explain(part["question"], items, sections, slm)
-            situation = _SITUATION.get(part["finding"], "").format(ask=part.get("ask") or "")
+            situation = SITUATION.get(part["finding"], "").format(ask=part.get("ask") or "")
             entry.update(
                 explanation=explanation, situation=situation, source=source,
                 citations=[{"source_id": item["source_id"], "act_id": item["provision"]["act_id"],

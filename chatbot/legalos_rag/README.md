@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, and `answerAgent` writes the answer.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, `answerAgent` writes the answer, and `evaluator` checks it.
 
 ---
 
@@ -27,6 +27,7 @@ legalos_rag/
 ├── applicabilityAgent.py
 ├── contextCompactor.py
 ├── answerAgent.py
+├── evaluator.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -546,6 +547,54 @@ rank the wrong section first, the asks quote an open clause that is not always t
 paraphrases conditions imperfectly. The checks guarantee form (parts, sources, no model-made personal
 conclusion), not that an explanation is right. The number check cannot catch a garbled use of real numbers.
 The evaluator in the next step is where correctness has to be checked. Nothing in the live graph calls the agent yet.
+
+### `evaluator.py`
+
+`evaluate_answer(config, answer, evidence)` checks the output of `answerAgent.write_answer` against the
+evidence it was written from. It uses no model, so a model cannot certify a citation or source ID, and every
+finding is an exact fact about the text.
+
+- **Citations**: each citation's source ID must read back through `sectionLookup.fetch_section` for a verified
+  Act, belong to the part's own evidence, and match the cited Act and section label. A found part must cite a
+  section. A section mentioned in the explanation outside quotation marks must be cited.
+- **Unsupported claims**: every number in the explanation must be in the cited sections, the explanation must not
+  speak to the user about their own case, and the situation sentence must be one of the fixed sentences.
+- **Omissions**: the sub-sections that matter for the part (the one holding the support sentence and any sharing a
+  content word with the question or target) are split into a main clause and each `Provided ...` proviso. The answer
+  must state each limit (a number with a unit such as months, days, lakh or per cent, written as digits or words),
+  keep a hedge such as "as far as possible" when it states the limit it qualifies, and mention each proviso (at least 40%
+  of its longer words, matched on their first five letters). Each omission is reported with the exact source clause.
+- **Parts**: every question part must have an entry; a part with no evidence is `incomplete` and its missing detail
+  is listed in `missing_details`.
+
+Verdicts: `fail` for a citation or unsupported-claim problem, `incomplete` for an omission or a part not found, else `pass`.
+
+Tested on reconstructions of the POC's documented false-completeness failures (the POC's own answer texts are not
+committed), each paired with a complete answer I wrote:
+
+| Case | Answer left out | Result |
+| --- | --- | --- |
+| POSH filing deadline | the extension and the written reasons | caught (`omitted_proviso`) |
+| Divorce by mutual consent | the eighteen-month limit | caught (`omitted_limit`) |
+| Custody of children | "as far as possible" before the sixty days | caught (`hedge_dropped`) |
+| GST registration | the turnover thresholds | caught (`omitted_limit`) |
+| GST payment | cited section 73 but mentioned section 74 | caught (`fail`, `section_not_cited`) |
+
+All 5 were caught and all 5 complete answers passed; 9 of 9 structural checks (no citation, a wrong source version, a
+label that does not match its ID, a section that is not the part's evidence, an invented number, a second-person conclusion,
+a changed situation sentence, a missing part, a part not found) behave as intended. The vehicle-transfer case from the POC
+is the Motor Vehicles Act, which is refused here, so it was not tested. The first version flagged all 5 complete answers
+because it counted section numbers, sub-section numbers and years as omitted limits; it now counts only a number with a unit.
+The complete answers were written by me knowing what the check looks for, so they are not an independent test.
+
+On 5 real answers the answer agent wrote (not written by me), the evaluator passed 1 and marked 4 `incomplete`: the
+custody answer said the court "must" decide within sixty days without "as far as possible" (the POC's known failure), the
+consumer-complaint answers omitted a proviso and the 25 per cent minimum, and the out-of-Act question was reported as not found.
+
+**What it cannot see.** It checks that the right numbers and words are present, not that they are used correctly: a
+garbled explanation that contains the right numbers passes, and a paraphrase that avoids the source's words can be flagged.
+It does not judge the condition check's verdicts or the "situation" sentence beyond its wording. Long sections make it
+strict, because the answer is only about 120 words. Nothing in the live graph calls the evaluator yet.
 
 ### `workflow.py`
 

@@ -28,6 +28,7 @@ chatbot/
     ├── applicabilityAgent.py
     ├── contextCompactor.py
     ├── answerAgent.py
+    ├── evaluator.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -420,6 +421,23 @@ with nothing found says what was not found. The explanation is written by the lo
 cited sections; every statement about the user's own case is a fixed sentence chosen in code from the
 condition check, never model text. The answer is only as good as the sections found for it: see the
 [answer agent notes](legalos_rag/README.md#answeragentpy) for what was measured.
+
+## Evaluate an answer
+
+A readable answer can still leave out a condition that changes it. This command answers a question as
+above and then checks the answer against the sections it was written from. It needs the same inputs
+as the answer agent and Ollama running (the evaluation itself uses no model):
+
+```bash
+python -m chatbot.legalos_rag.evaluator --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "What does the Act provide about custody of minor children?"
+```
+
+It prints the answer and then a verdict for the answer and for each question part: `pass`,
+`incomplete` (something is missing or was not found) or `fail` (a citation or unsupported-claim
+problem). Each finding names a specific detail and, for an omission, quotes the exact source text that
+the answer left out. `missing_details` lists what to look for next. See the
+[evaluator notes](legalos_rag/README.md#evaluatorpy) for exactly what is checked and what it cannot see.
 
 ---
 
