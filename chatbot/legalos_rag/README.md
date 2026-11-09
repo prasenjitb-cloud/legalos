@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, and `referenceAgent` resolves a named Act and section.
 
 ---
 
@@ -18,6 +18,7 @@ legalos_rag/
 ├── structuredCall.py
 ├── questionSplitter.py
 ├── factExtractor.py
+├── referenceAgent.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -194,6 +195,39 @@ calls the splitter yet.
 A fact is the quote itself, not a reworded summary, so no date, count or relationship can be added that the user did not write. A fact the user did not give is absent, which later steps read as unknown. A model or parse error records no facts.
 
 Measured with `qwen2.5:3b-instruct`: on 12 questions used while writing the checks, all 12 were correct and all 9 expected facts were found. On 6 further questions run once, 5 were correct and 4 of 5 expected facts were found; the miss was a left-out fact ("We are three partners"), not an invented one. The model returned the question itself as a fact once and returned imagined cases several times; the code removed all of these. A test that feeds the code invented quotes (a date, a relationship, an imagined headcount) confirmed none is kept. A quote can hold more than one fact, such as two sentences. Nothing in the live graph calls the extractor yet.
+
+### `referenceAgent.py`
+
+`resolve_references(config, question)` returns one result for each section number named in
+the question, in order. It is plain code: no model is called and no search score is used,
+so a high-ranking search hit cannot confirm a reference.
+
+- **Section**: found by `section`, `sec` or `s.` followed by a number such as `13B`, a list
+  such as `5 and 6`, and an optional subsection such as `(1)(a)`. A bare number without
+  one of these words is not read as a section.
+- **Act**: an Act is recognised from its name without the year and any bracketed text
+  (for example "Hindu Marriage"), or an alias from the config, with or without "Act" and
+  a year. It is paired with a section when it follows directly after `of`, `under`, `in`,
+  `to` or `from`; several Acts joined by `and`, `or` or a comma give one result each. If a
+  section has no Act directly after it, the Act is used only when the question names
+  exactly one Act; otherwise the result is `ambiguous`.
+- **Checks**: the Act must pass `sourceReview.load_verified_source` for its current source
+  version, a year in the question must match the supported Act, and the section number
+  must exist in the Act. The provision comes from `sectionLookup.fetch_section`, so it is
+  the full text with pages and footnotes. A requested subsection is returned in
+  `subsection`; the provision is always the whole section.
+- **Other Acts**: a capitalised phrase ending in "Act" that is not a supported Act gives
+  `unsupported_act`. A name followed by more title words, such as "Hindu Marriage
+  Amendment Act", is a different Act and is never verified as the supported one.
+- **Ambiguity**: candidates are the checked Acts that have that section number, with the
+  section's title and source ID but no text. Candidate search by meaning or keywords is
+  added with the shared retriever and is not used here.
+
+Limits: a section is recognised only after the word `section`, `sec` or `s.`; "Hindu Marriage
+Act 13" returns nothing. A phrase such as "section 13 of my building" is reported as
+ambiguous, not ignored. An amending Act written with brackets, such as "Hindu Marriage
+(Amendment) Act", is reported as ambiguous, never as the supported Act. Rules and schedules
+are not covered. Nothing in the live graph calls this yet.
 
 ### `workflow.py`
 

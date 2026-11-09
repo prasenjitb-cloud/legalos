@@ -7,6 +7,7 @@
     {
       "act_id": "posh_2013",
       "act_name": "Sexual Harassment of Women at Workplace (Prevention, Prohibition and Redressal) Act, 2013",
+      "aliases": ["POSH"],
       "snapshot_file": "posh.json",
       "snapshot_sha256": "031085427bc4e89d83aa9dd857190b1ae339e00b601acdff318701a735c8e1b7",
       "source_file": "A2013-14.pdf",
@@ -17,6 +18,7 @@
     {
       "act_id": "hma_1955",
       "act_name": "Hindu Marriage Act, 1955",
+      "aliases": ["HMA"],
       "snapshot_file": "hma_1955.json",
       "snapshot_sha256": "27267f017623d83972d3b732bf49c760986479a786edb599d544b449214341ee",
       "source_file": "A1955-25.pdf",
@@ -27,6 +29,7 @@
     {
       "act_id": "mva_1988",
       "act_name": "Motor Vehicles Act, 1988",
+      "aliases": ["MVA", "Motor Vehicle"],
       "snapshot_file": "mva_1988.json",
       "snapshot_sha256": "a89545a119fdaf5646ff638cdb5e0a76d8cc7468882a3017a559dce40610a483",
       "source_file": "aA1988-59.pdf",
@@ -37,6 +40,7 @@
     {
       "act_id": "jja_2015",
       "act_name": "Juvenile Justice (Care and Protection of Children) Act, 2015",
+      "aliases": ["JJ", "JJA"],
       "snapshot_file": "jja_2015.json",
       "snapshot_sha256": "48342c0f288359cdb258de085310dbd25267e92c12c99830a34794042de01eb7",
       "source_file": "a2016-2.pdf",
@@ -47,6 +51,7 @@
     {
       "act_id": "cgst_2017",
       "act_name": "Central Goods and Services Tax Act, 2017",
+      "aliases": ["CGST"],
       "snapshot_file": "cgst_2017.json",
       "snapshot_sha256": "ffe5b2b9dd18901b9bb7ca3e87208c3cfe63819873d7dfb946caa89055585bb2",
       "source_file": "a2017-12.pdf",
@@ -57,6 +62,7 @@
     {
       "act_id": "cpa_2019",
       "act_name": "Consumer Protection Act, 2019",
+      "aliases": ["CPA"],
       "snapshot_file": "cpa_2019.json",
       "snapshot_sha256": "9b2aa54feb9bc011cfddeb54d92e2a43a8346d7e4a6e47667a60ffee0cb71b2d",
       "source_file": "eng201935.pdf",

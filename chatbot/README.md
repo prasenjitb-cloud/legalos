@@ -19,6 +19,7 @@ chatbot/
     ├── structuredCall.py
     ├── questionSplitter.py
     ├── factExtractor.py
+    ├── referenceAgent.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -228,6 +229,33 @@ python -m chatbot.legalos_rag.factExtractor --config ./config/rag_v1.json --ques
 The command prints the original `question` and its `facts`, each with an `id` and the
 `quote`. It does not search the law and does not change the chatbot. See the
 [extractor notes](legalos_rag/README.md#factextractorpy) for the checks and results.
+
+## Resolve a named Act and section
+
+When a question names a section, such as "section 13 of the Hindu Marriage Act", the
+section should be confirmed from the checked source, not guessed from search results.
+This command finds each named section and Act and returns the verified, complete
+provision, or says why it cannot. It needs the loader and the source check to have been
+run, but no model or network. Run it from the repository root:
+
+```bash
+python -m chatbot.legalos_rag.referenceAgent --config ./config/poc_sources.json --question "<question>"
+```
+
+The command prints one result for each section number named. A `verified` result has the
+full provision (the same output as the section lookup above). Other results have a
+`status` and a `reason`:
+
+| Status | Meaning |
+| --- | --- |
+| `ambiguous` | No single Act is named for the section; the result lists candidate sections from the checked Acts. |
+| `unsupported_act` | The question names an Act that is not one of the six. |
+| `act_not_verified` | The Act did not pass its source check, such as Motor Vehicles at present. |
+| `not_found` | The Act has no such numbered section, or the year given is not the supported version. |
+
+A question that names no section prints `[]`. Each source in `config/poc_sources.json`
+can list short `aliases` (such as `POSH`) that are recognised as the Act. See the
+[agent notes](legalos_rag/README.md#referenceagentpy) for the matching rules.
 
 ---
 
