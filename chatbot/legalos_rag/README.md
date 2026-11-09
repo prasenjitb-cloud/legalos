@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states.
 
 ---
 
@@ -17,6 +17,7 @@ legalos_rag/
 ├── sectionLookup.py
 ├── structuredCall.py
 ├── questionSplitter.py
+├── factExtractor.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -181,6 +182,18 @@ named Acts, stayed as one part. This under-splitting loses no facts. The `facts`
 is best effort: the model sometimes leaves it empty even when the part's own text
 states the fact. Exact fact extraction is a separate step. Nothing in the live graph
 calls the splitter yet.
+
+### `factExtractor.py`
+
+`extract_facts(question, slm)` returns `{"question": <original>, "facts": [{"id": "f1", "quote": ...}]}`. The model proposes quotes and code keeps a quote only when:
+
+- it appears word for word in the question (ignoring case and spacing), and the quote is stored exactly as the user wrote it;
+- it is not a question (it contains no `?`);
+- it is not an imagined case: no `if`, `suppose`, `assume`, `unless`, `whether` or `imagine` appears in the quote or earlier in its sentence.
+
+A fact is the quote itself, not a reworded summary, so no date, count or relationship can be added that the user did not write. A fact the user did not give is absent, which later steps read as unknown. A model or parse error records no facts.
+
+Measured with `qwen2.5:3b-instruct`: on 12 questions used while writing the checks, all 12 were correct and all 9 expected facts were found. On 6 further questions run once, 5 were correct and 4 of 5 expected facts were found; the miss was a left-out fact ("We are three partners"), not an invented one. The model returned the question itself as a fact once and returned imagined cases several times; the code removed all of these. A test that feeds the code invented quotes (a date, a relationship, an imagined headcount) confirmed none is kept. A quote can hold more than one fact, such as two sentences. Nothing in the live graph calls the extractor yet.
 
 ### `workflow.py`
 

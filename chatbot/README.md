@@ -18,6 +18,7 @@ chatbot/
     ├── sectionLookup.py
     ├── structuredCall.py
     ├── questionSplitter.py
+    ├── factExtractor.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -211,6 +212,22 @@ Several details of one legal problem stay in one part. When the model fails, ret
 more than four parts, or rewrites a part with words the user did not use, the whole
 question is kept as one part. See the
 [splitter notes](legalos_rag/README.md#questionsplitterpy) for what was measured.
+
+## Record the facts a user states
+
+Legal answers can depend on facts such as a worker count, a date or a relationship.
+This command records only the facts the user wrote, each as an exact quote. A fact the
+user did not give is never filled in; it is simply absent, so later steps treat it as
+unknown. It needs Ollama running with the model named in the config. Run it from the
+repository root:
+
+```bash
+python -m chatbot.legalos_rag.factExtractor --config ./config/rag_v1.json --question "<question>"
+```
+
+The command prints the original `question` and its `facts`, each with an `id` and the
+`quote`. It does not search the law and does not change the chatbot. See the
+[extractor notes](legalos_rag/README.md#factextractorpy) for the checks and results.
 
 ---
 

@@ -58,6 +58,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── sectionLookup.py   # Fetch a complete section of a checked Act by ID
 │       ├── structuredCall.py  # One structured call to the local model
 │       ├── questionSplitter.py # Split a question into independent legal parts
+│       ├── factExtractor.py   # Record facts the user states, as exact quotes
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -151,7 +152,8 @@ local section corpus. See [POC source loading](chatbot/README.md#load-the-poc-la
 for the required files and command. Importing sources does not enable them in the chatbot.
 Each imported Act is then [checked against its PDF](chatbot/README.md#check-the-poc-law-sources);
 an Act that fails the check is refused by the new retrieval path. A question that covers
-separate legal matters can be [split into parts](chatbot/README.md#split-a-question) that keep their own facts.
+separate legal matters can be [split into parts](chatbot/README.md#split-a-question) that keep their own facts,
+and the facts a user states can be [recorded as exact quotes](chatbot/README.md#record-the-facts-a-user-states).
 
 ## AWS Deployment
 
