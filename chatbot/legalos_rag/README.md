@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, and `evidenceAgent` gathers evidence for each question part.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, and `conditionCheck` marks a section's conditions against stated facts.
 
 ---
 
@@ -23,6 +23,7 @@ legalos_rag/
 ├── retriever.py
 ├── evidenceFilter.py
 ├── evidenceAgent.py
+├── conditionCheck.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -386,6 +387,44 @@ before running:
   target "custody act details".
 
 Nothing in the live graph calls the agent yet.
+
+### `conditionCheck.py`
+
+`check_conditions(config, section, facts, slm)` takes a full section (`sectionLookup.fetch_section`)
+and the `{"id", "quote"}` facts from `factExtractor`, and returns each condition with a status.
+
+1. **List**: one model call lists the conditions, provisos and exceptions of the section, each copied
+   exactly. Items that are not an exact clause of the section, or are shorter than 8 words (fragments
+   such as "(2)"), are dropped. Sections over 6,000 characters are not assessed.
+2. **Judge**: one model call per item, given only the stated facts and, when the item names another
+   section of the same Act, that section's text (fetched with `sectionLookup`, first 1,500 characters).
+3. **Rules in code**: a status other than `UNKNOWN` is kept only if the verdict cites a fact ID that
+   exists; otherwise the item is `UNKNOWN`. With no facts every item is `UNKNOWN` and no judge call
+   is made. An exception is never `NOT_MET` (stated facts cannot show an exception is absent), so
+   it is `MET` (it applies) or `UNKNOWN`.
+4. **Overall**: `not_met` if any condition is not met; `excepted` if an exception applies; `met` only if
+   every condition is met and no exception is listed or left open; otherwise `unknown`.
+
+Measured on 10 cases (about 20 checks) with expected verdicts fixed from the section text: a bride aged
+17 or 19 against the marriage-age condition, no facts, a complaint date with and without a complaint
+date, a complaint inside and outside three months, mutual-consent divorce with and without a year of
+separation, and two cases where the facts belong to a different rule.
+
+| Model | Checks passed | Notable errors |
+| --- | ---: | --- |
+| `qwen2.5:3b-instruct`, first version | 16 of 20 | Provisos marked `NOT_MET` citing unrelated facts; fragments listed as conditions |
+| `qwen2.5:3b-instruct`, final | 15 of 20 | A 19-year-old bride marked `NOT_MET`; **divorce-by-consent facts made judicial separation (section 10) `met`** |
+| `qwen2.5:7b-instruct`, final | 15 of 20 | **A 17-year-old bride marked `MET`**; the related-rule cases correctly `unknown`; two to three times slower |
+
+The code rules held in every run: no status without a cited fact, no judge call without facts, and
+all six listed-clause and citation guard tests pass with a stand-in model. They cannot catch a wrong
+judgement that cites a real fact. Both models get age and date comparisons wrong sometimes, and the
+3B model once let a related but different rule come out `met`. So the two aims of this step are only
+partly met: missing facts stay `unknown` (always when there are none, usually otherwise), but
+a related rule is not reliably prevented from deciding a case. Later steps must use these statuses as
+an assessment for the evaluator to check, and say nothing definite about a user's case from them.
+Comparing numbers and dates in code, or a stronger judge model, would be the next improvement.
+Nothing in the live graph calls the check yet.
 
 ### `workflow.py`
 

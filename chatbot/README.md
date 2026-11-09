@@ -24,6 +24,7 @@ chatbot/
     ├── retriever.py
     ├── evidenceFilter.py
     ├── evidenceAgent.py
+    ├── conditionCheck.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -340,6 +341,27 @@ version), and the sections `rejected` or `unchecked`. A part that finds nothing 
 not found in `missing`. A found part says `completeness: not_checked`: the command does not
 decide whether the sections answer everything asked. It does not write an answer. See the
 [agent notes](legalos_rag/README.md#evidenceagentpy) for what was measured.
+
+## Check a section's conditions against stated facts
+
+A rule applies only if its conditions are met and no exception applies. This command lists the
+conditions and exceptions of one complete section and marks each `MET`, `NOT_MET` or `UNKNOWN`
+against facts the user stated. It needs Ollama running with the model in the config. Run it
+from the repository root; `--fact` is repeated for each fact, quoted as the user wrote it:
+
+```bash
+python -m chatbot.legalos_rag.conditionCheck --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --id "<section source_id>" --fact "The bride is 19 and the groom is 25"
+```
+
+Each condition shows its exact clause, its status and the facts it cites. A condition is `MET` or
+`NOT_MET` only when it cites a stated fact; with no facts every condition is `UNKNOWN`, and the
+model is not called. The `overall` result is `not_met`, `excepted`, `met` or `unknown`.
+
+**Treat the statuses as an assessment, not a finding.** The local model sometimes judges a
+condition wrongly even when it cites a real fact, for example on an age comparison; see the
+[condition check notes](legalos_rag/README.md#conditioncheckpy) for what was measured. The result
+should be reviewed by the evaluator before anything is said about a user's case.
 
 ---
 

@@ -64,6 +64,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── retriever.py       # Keyword + vector search merged by source ID, full sections
 │       ├── evidenceFilter.py  # Keep retrieved sections that state the evidence asked for
 │       ├── evidenceAgent.py   # Sourced evidence for each question part, with what is not found
+│       ├── conditionCheck.py  # Check a section's conditions against stated facts
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -163,7 +164,8 @@ A named Act and section can be [resolved to a verified provision](chatbot/README
 and exact legal words and section numbers can be found with [keyword search](chatbot/README.md#search-a-verified-act-by-keyword).
 The [shared retriever](chatbot/README.md#retrieve-sections-of-a-verified-act) combines keyword and vector search for one checked Act,
 and the [evidence filter](chatbot/README.md#filter-retrieved-sections-by-the-evidence-wanted) drops results that only mention the topic.
-The [Evidence Agent](chatbot/README.md#gather-evidence-for-each-part-of-a-question) gathers sourced evidence for each part of a question.
+The [Evidence Agent](chatbot/README.md#gather-evidence-for-each-part-of-a-question) gathers sourced evidence for each part of a question,
+and the [condition check](chatbot/README.md#check-a-sections-conditions-against-stated-facts) compares a section's conditions with the facts a user stated.
 
 ## AWS Deployment
 
