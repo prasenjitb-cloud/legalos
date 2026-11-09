@@ -53,7 +53,7 @@ def _passage_pieces(candidate: dict) -> list[str]:
     return pieces
 
 
-def _sentences(pieces: list[str]) -> list[str]:
+def split_sentences(pieces: list[str]) -> list[str]:
     """Split each piece at full stops and semicolons into exact slices of the text.
 
     A tiny piece such as "9." is joined to the sentence after it.
@@ -90,7 +90,7 @@ def filter_evidence(question: str, target: str, candidates: list[dict], slm) -> 
     """
     kept, rejected, unchecked = [], [], []
     for candidate in candidates:
-        sentences = _sentences(_passage_pieces(candidate))
+        sentences = split_sentences(_passage_pieces(candidate))
         numbered = "\n".join(f"{number}. {sentence}" for number, sentence in enumerate(sentences, start=1))
         try:
             verdict = structuredCall.ask_model(

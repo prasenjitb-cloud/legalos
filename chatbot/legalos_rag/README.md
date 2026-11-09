@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, and `applicabilityAgent` decides what can be said about a situation.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, and `contextCompactor` shortens the evidence for the answer step.
 
 ---
 
@@ -25,6 +25,7 @@ legalos_rag/
 ├── evidenceAgent.py
 ├── conditionCheck.py
 ├── applicabilityAgent.py
+├── contextCompactor.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -461,6 +462,44 @@ of three months before a consent divorce; and a consent-divorce question with no
 - The condition check's own limits apply: statuses can be wrong (see `conditionCheck.py`).
 
 Nothing in the live graph calls the agent yet.
+
+### `contextCompactor.py`
+
+`compact_evidence(parts)` takes the `parts` of `evidenceAgent.gather_evidence` and returns the sections
+with a ready-to-use `context` string, one block per section headed by its source ID and pages, plus the
+original and compacted character counts. It is plain code with no model call, so it cannot invent or
+silently reword text.
+
+- **Repeated sections**: a section used by several parts appears once, with the part IDs in `used_for`.
+- **Artifacts**: omission marks such as `* * *` and extra spaces are removed; the words are unchanged.
+- **Short sections** (3,000 characters or fewer) are kept whole.
+- **Longer sections**: only whole sentences are removed, and each gap is marked `[...]`. A sentence is kept
+  if it is the heading or the support sentence, an enumerated item (`(a)`, `(ii)`, `or (iii)`), a sentence
+  with a qualifier word (provided, except, unless, subject to, notwithstanding, explanation, within,
+  not less/more/later/earlier, not exceeding), a number or a number word, or if it shares a word of five
+  or more letters with the part's question or target.
+
+Measured with the material conditions of each section fixed beforehand from its text:
+
+| Examples | Retained every material condition | Size after compaction |
+| --- | ---: | ---: |
+| 9 sections used while building (penalties, maintenance, custody, remedies, refund, mutual consent, marriage conditions, complaint filing) | 9 of 9 | 100% |
+| 6 longer sections tried afterwards (input tax credit, tax invoice, grounds for divorce, inquiry report, jurisdiction, orders for a child) | 6 of 6 | 98% |
+| Evidence the evidence agent returned for 7 real questions | not scored | 99% (78,485 to 78,005 characters) |
+
+Getting there took changes made after failures: the first version dropped "fifty thousand rupees", a
+cancellation penalty and the list of remedies the Commission can order, because it kept sentences by word
+overlap alone, and the first held-out run lost two grounds for divorce that began with "or]". Enumerated
+items and number words are now always kept, and a leading "or" no longer hides a list item. One apparent
+failure was my own wrong wording of a phrase to check ("actually been paid" for "actually paid"), which I
+corrected. The held-out set was used to find the second fault, so its 6 of 6 is a second look, not a clean test.
+
+**The saving is negligible.** Sections of these Acts are mostly conditions, numbers and lists, so almost
+nothing can be removed safely; the measured saving on real evidence is about 1%. Large definitions sections
+are kept almost whole. Real shortening would need choosing list items by relevance, which risks dropping a
+needed condition, so it is not done here. The tool is safe to put in front of the answer step but does
+not by itself make its input meaningfully shorter. The sentence splitter is shared with `evidenceFilter`
+(`split_sentences`, renamed from a private helper). Nothing in the live graph calls the compactor yet.
 
 ### `workflow.py`
 

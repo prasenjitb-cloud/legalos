@@ -26,6 +26,7 @@ chatbot/
     ├── evidenceAgent.py
     ├── conditionCheck.py
     ├── applicabilityAgent.py
+    ├── contextCompactor.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -383,6 +384,23 @@ listed with their statuses and the facts they cite.
 
 **No finding is a personal conclusion**, and the `ask` is not yet a polished question for the
 user. See the [agent notes](legalos_rag/README.md#applicabilityagentpy).
+
+## Compact the evidence for the answer step
+
+The answer step needs the sections found for every question part, without repeating the same
+text. This command gathers the evidence for a question as above and prints the compacted text,
+with the source ID and pages of each section, and how many characters were saved. It needs the
+same inputs as the evidence agent and Ollama running:
+
+```bash
+python -m chatbot.legalos_rag.contextCompactor --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "What are the conditions for divorce by mutual consent, and what does the Act provide about custody of minor children?"
+```
+
+A section used by several parts appears once. Short sections are kept whole; in a longer section only
+whole sentences that carry no condition are removed, and each gap is marked `[...]`. The saving is
+small: the sections of these Acts are mostly conditions, so almost nothing is removed. See the
+[compactor notes](legalos_rag/README.md#contextcompactorpy) for what was measured.
 
 ---
 

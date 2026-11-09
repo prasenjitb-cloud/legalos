@@ -66,6 +66,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── evidenceAgent.py   # Sourced evidence for each question part, with what is not found
 │       ├── conditionCheck.py  # Check a section's conditions against stated facts
 │       ├── applicabilityAgent.py # What can and cannot be said about a user's situation
+│       ├── contextCompactor.py # Shorten evidence for the answer step, keeping every condition
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -167,7 +168,8 @@ The [shared retriever](chatbot/README.md#retrieve-sections-of-a-verified-act) co
 and the [evidence filter](chatbot/README.md#filter-retrieved-sections-by-the-evidence-wanted) drops results that only mention the topic.
 The [Evidence Agent](chatbot/README.md#gather-evidence-for-each-part-of-a-question) gathers sourced evidence for each part of a question,
 and the [condition check](chatbot/README.md#check-a-sections-conditions-against-stated-facts) compares a section's conditions with the facts a user stated.
-The [Applicability Agent](chatbot/README.md#assess-what-can-be-said-about-a-situation) uses both to decide what can and cannot be said about a situation.
+The [Applicability Agent](chatbot/README.md#assess-what-can-be-said-about-a-situation) uses both to decide what can and cannot be said about a situation,
+and the [context compactor](chatbot/README.md#compact-the-evidence-for-the-answer-step) prepares the evidence text for the answer step.
 
 ## AWS Deployment
 
