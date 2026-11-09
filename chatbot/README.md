@@ -23,6 +23,7 @@ chatbot/
     ├── keywordSearch.py
     ├── retriever.py
     ├── evidenceFilter.py
+    ├── evidenceAgent.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -320,6 +321,25 @@ The command prints three lists: `kept` (each with the `support_quote`, the sente
 states the evidence), `rejected` (with a `reason`) and `unchecked` (the model failed on it).
 It does not decide an answer. See the
 [filter notes](legalos_rag/README.md#evidencefilterpy) for how it works and what was measured.
+
+## Gather evidence for each part of a question
+
+This command splits a question into parts, then for each part names the evidence wanted,
+retrieves sections of one checked Act, keeps those that state it, and returns them with their
+sources. It needs the same inputs as the retriever and Ollama running with the model in the
+config:
+
+```bash
+python -m chatbot.legalos_rag.evidenceAgent --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "What are the conditions for divorce by mutual consent, and what does the Act provide about custody of minor children?"
+```
+
+The output has one entry per question part with its `target`, a `status` of `found` or
+`not_found`, the `evidence` (section, source ID, the `support_quote` sentence, pages and source
+version), and the sections `rejected` or `unchecked`. A part that finds nothing names what was
+not found in `missing`. A found part says `completeness: not_checked`: the command does not
+decide whether the sections answer everything asked. It does not write an answer. See the
+[agent notes](legalos_rag/README.md#evidenceagentpy) for what was measured.
 
 ---
 

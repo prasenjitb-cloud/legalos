@@ -40,30 +40,42 @@ _FILTER_PROMPT = (
 )
 
 
-def _passage(candidate: dict) -> str:
-    """Return the whole section when it is short, else the matching excerpts the search found."""
+def _passage_pieces(candidate: dict) -> list[str]:
+    """Return the whole section when it is short, else its text at the matching excerpts."""
     text = candidate["section"]["text"]
     if len(text) <= _WHOLE_SECTION_CHARS:
-        return text
+        return [text]
     pieces = []
     for source_id in candidate["hit_source_ids"][:_MAX_PASSAGES]:
         _, _, span = source_id.partition(":chars:")
         start, end = (int(n) for n in span.split("-"))
         pieces.append(text[start:end])
-    return " ".join(pieces)
+    return pieces
 
 
-def _sentences(passage: str) -> list[str]:
-    """Split at full stops and semicolons, joining tiny pieces such as "9." to the next one."""
-    sentences, carried = [], ""
-    for piece in re.split(r"(?<=[.;])\s+", passage):
-        piece = f"{carried} {piece}".strip()
-        if len(piece) < _MIN_SENTENCE_CHARS:
-            carried = piece
-        else:
-            sentences.append(piece)
-            carried = ""
-    return sentences + ([carried] if carried else [])
+def _sentences(pieces: list[str]) -> list[str]:
+    """Split each piece at full stops and semicolons into exact slices of the text.
+
+    A tiny piece such as "9." is joined to the sentence after it.
+    """
+    sentences = []
+    for piece in pieces:
+        bounds, start = [], 0
+        for gap in re.finditer(r"(?<=[.;])\s+", piece):
+            bounds.append((start, gap.start()))
+            start = gap.end()
+        bounds.append((start, len(piece)))
+        carried = None
+        for start, end in bounds:
+            start = start if carried is None else carried
+            if end - start < _MIN_SENTENCE_CHARS:
+                carried = start
+                continue
+            carried = None
+            sentences.append(piece[start:end])
+        if carried is not None and piece[carried:].strip():
+            sentences.append(piece[carried:])
+    return [sentence for sentence in sentences if sentence.strip()]
 
 
 def filter_evidence(question: str, target: str, candidates: list[dict], slm) -> dict:
@@ -78,7 +90,7 @@ def filter_evidence(question: str, target: str, candidates: list[dict], slm) -> 
     """
     kept, rejected, unchecked = [], [], []
     for candidate in candidates:
-        sentences = _sentences(_passage(candidate))
+        sentences = _sentences(_passage_pieces(candidate))
         numbered = "\n".join(f"{number}. {sentence}" for number, sentence in enumerate(sentences, start=1))
         try:
             verdict = structuredCall.ask_model(
@@ -92,7 +104,7 @@ def filter_evidence(question: str, target: str, candidates: list[dict], slm) -> 
         elif not 1 <= verdict.sentence <= len(sentences):
             rejected.append({**candidate, "reason": "The named sentence is not in the passage"})
         else:
-            kept.append({**candidate, "support_quote": sentences[verdict.sentence - 1].strip()})
+            kept.append({**candidate, "support_quote": sentences[verdict.sentence - 1]})
     return {"kept": kept, "rejected": rejected, "unchecked": unchecked}
 
 

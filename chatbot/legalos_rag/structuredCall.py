@@ -1,5 +1,8 @@
 """Ask the local model for one structured answer, as the query rewriter does."""
 
+import json
+
+import langchain_core.exceptions
 import langchain_core.output_parsers
 import langchain_core.prompts
 import langchain_ollama
@@ -19,4 +22,12 @@ def ask_model(slm, template: str, schema, **inputs):
     )
     model = langchain_ollama.ChatOllama(model=slm.model, temperature=0)
     reply = model.invoke(prompt.format(**inputs))
-    return parser.parse(reply.content)
+    try:
+        return parser.parse(reply.content)
+    except langchain_core.exceptions.OutputParserException:
+        # Small models sometimes add text after the JSON or answer with the schema's own
+        # wrapper, {"properties": {...}}. Read the first JSON object and unwrap that shape.
+        data, _ = json.JSONDecoder().raw_decode(reply.content[reply.content.index("{"):])
+        if isinstance(data, dict) and isinstance(data.get("properties"), dict):
+            data = data["properties"]
+        return schema.model_validate(data)

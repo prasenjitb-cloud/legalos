@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, and `evidenceFilter` drops results that only mention the topic.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, and `evidenceAgent` gathers evidence for each question part.
 
 ---
 
@@ -22,6 +22,7 @@ legalos_rag/
 ├── keywordSearch.py
 ├── retriever.py
 ├── evidenceFilter.py
+├── evidenceAgent.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -159,8 +160,11 @@ in [Fetch a complete section](../README.md#fetch-a-complete-section).
 
 `ask_model(slm, template, schema, **inputs)` fills a prompt template, calls the same
 Ollama model as `slm` at temperature 0, and parses the reply into a Pydantic schema,
-using the same parser as the query rewriter. It raises on a parse or model error so
-each caller chooses its own fallback. The next model-based steps reuse it.
+using the same parser as the query rewriter. If the small model adds text after the JSON or
+answers with the schema's own wrapper (`{"properties": {...}}`), it reads the first JSON object
+and unwraps that shape. It still raises on any other parse or model error so each caller
+chooses its own fallback. A model that echoes the schema's field description as the value
+cannot be repaired and raises.
 
 ### `questionSplitter.py`
 
@@ -338,6 +342,50 @@ does not yet meet the aim of rejecting distractors without losing needed section
 candidate list for the Evidence Agent and evaluator to check, not proof that a section answers the
 question.
 Nothing in the live graph calls the filter yet.
+
+The first run of the numbered-sentence version cut the passage into sentences by re-joining
+pieces with single spaces, so a quote could differ from the section text in whitespace. The
+sentences are now exact slices of the section, and are never joined across separate excerpts.
+Re-measured with that change: 14 of 19 needed kept and 16 of 24 distractors rejected on the first
+15 requests, and 8 of 8 and 11 of 17 on the 8 held-out requests. Over all 23 requests that is 22
+of 27 needed sections kept (81%) and 27 of 41 distractors rejected (66%).
+
+### `evidenceAgent.py`
+
+`gather_evidence(config, vectorstore, act_id, question, slm)` returns the evidence for one question
+from one verified Act, in four steps for each part from `questionSplitter`:
+
+1. **Target**: one model call names the evidence wanted in under eight words ("complaint filing
+   process"). If that call fails the part question itself is searched.
+2. **Retrieve**: `retriever.retrieve`, top 3 sections, with the complete section text.
+3. **Check**: `evidenceFilter.filter_evidence` keeps the sections whose passage states the target.
+4. **Report**: `status` is `found` when a section passed and `not_found` otherwise. Each evidence
+   item has the section, source ID, `support_quote` (an exact sentence of the section), the
+   complete provision with pages and footnotes, and how it was found. Rejected and unchecked
+   sections are listed with a reason.
+
+A part with no passing section says what was not found in `missing`. For a found part,
+`completeness` is `not_checked`. An earlier version asked the model to name any detail still
+missing from a found part. Of its eight non-empty suggestions none was correct: some repeated
+details the sections already state ("three months"), one was invented, and one copied the example in
+the prompt. It was removed rather than put wrong information into the shared state; deciding whether
+the evidence covers the whole question is the evaluator's job.
+
+Measured with `qwen2.5:3b-instruct` on 9 questions across the five checked Acts (7 with 13 parts to
+find, 2 about things the Act does not contain). The sections that would answer each part were fixed
+before running:
+
+- **Needed sections found: 11 of 13** question parts. Missed: "when is GST on goods payable" (the
+  retriever returned only unrelated sections, so none passed the check) and "what is a Child Welfare
+  Committee" (section 27 was rejected because the model asked for a "definition of", which section 27 is
+  not, and the definitions section was kept instead).
+- **Out-of-Act questions: 2 of 2** returned `not_found` and named what was not found.
+- **Support quotes: all exact.** Every support sentence is in its provision, and every source ID reads
+  back to the same text through `sectionLookup`.
+- A part can be split in ways that change its target; for example "custody of minor children" became the
+  target "custody act details".
+
+Nothing in the live graph calls the agent yet.
 
 ### `workflow.py`
 
