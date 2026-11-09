@@ -417,7 +417,7 @@ separation, and two cases where the facts belong to a different rule.
 | `qwen2.5:7b-instruct`, final | 15 of 20 | **A 17-year-old bride marked `MET`**; the related-rule cases correctly `unknown`; two to three times slower |
 
 The code rules held in every run: no status without a cited fact, no judge call without facts, and
-all six listed-clause and citation guard tests pass with a stand-in model. They cannot catch a wrong
+all seven guard tests (invented citations, missing facts, clauses not in the section, exceptions, over-long sections) pass with a stand-in model. They cannot catch a wrong
 judgement that cites a real fact. Both models get age and date comparisons wrong sometimes, and the
 3B model once let a related but different rule come out `met`. So the two aims of this step are only
 partly met: missing facts stay `unknown` (always when there are none, usually otherwise), but
