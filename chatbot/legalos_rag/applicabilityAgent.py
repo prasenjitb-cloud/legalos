@@ -67,7 +67,7 @@ def assess_applicability(config: dict, vectorstore, act_id: str, question: str, 
                   for item in part["evidence"][:_MAX_CHECKED_SECTIONS]]
         parts.append({"id": part["id"], "question": part["question"], "personal": personal,
                       **_finding(personal, checks), "checks": checks, "note": _NOTE})
-    return {"act_id": act_id, "question": question, "facts": facts, "parts": parts}
+    return {"act_id": act_id, "question": question, "facts": facts, "parts": parts, "evidence": evidence}
 
 
 def main() -> None:
@@ -86,6 +86,7 @@ def main() -> None:
         result = assess_applicability(config, vectorstore, args.act, args.question, slm)
     except (OSError, ValueError, KeyError) as error:
         parser.error(str(error))
+    result.pop("evidence")
     for part in result["parts"]:
         for check in part["checks"]:
             check["conditions"] = [{k: c[k] for k in ("id", "kind", "text", "status", "fact_ids")} for c in check["conditions"]]

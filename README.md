@@ -67,6 +67,7 @@ The long-term vision is to become India’s premier Legal OS: the default, trust
 │       ├── conditionCheck.py  # Check a section's conditions against stated facts
 │       ├── applicabilityAgent.py # What can and cannot be said about a user's situation
 │       ├── contextCompactor.py # Shorten evidence for the answer step, keeping every condition
+│       ├── answerAgent.py     # Sourced answer: model explains the law, code states what applies
 │       ├── workflow.py        # LangGraph rewrite → retrieve → generate workflow
 │       └── prompt
 │           ├── prompts.py
@@ -170,6 +171,7 @@ The [Evidence Agent](chatbot/README.md#gather-evidence-for-each-part-of-a-questi
 and the [condition check](chatbot/README.md#check-a-sections-conditions-against-stated-facts) compares a section's conditions with the facts a user stated.
 The [Applicability Agent](chatbot/README.md#assess-what-can-be-said-about-a-situation) uses both to decide what can and cannot be said about a situation,
 and the [context compactor](chatbot/README.md#compact-the-evidence-for-the-answer-step) prepares the evidence text for the answer step.
+The [Answer Agent](chatbot/README.md#answer-a-question-from-a-verified-act) writes a sourced answer for each part of the question.
 
 ## AWS Deployment
 

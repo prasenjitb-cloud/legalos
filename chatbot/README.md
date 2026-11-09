@@ -27,6 +27,7 @@ chatbot/
     ├── conditionCheck.py
     ├── applicabilityAgent.py
     ├── contextCompactor.py
+    ├── answerAgent.py
     ├── workflow.py
     └── prompt
         ├── prompts.py
@@ -401,6 +402,24 @@ A section used by several parts appears once. Short sections are kept whole; in 
 whole sentences that carry no condition are removed, and each gap is marked `[...]`. The saving is
 small: the sections of these Acts are mostly conditions, so almost nothing is removed. See the
 [compactor notes](legalos_rag/README.md#contextcompactorpy) for what was measured.
+
+## Answer a question from a verified Act
+
+This command runs the whole new path for one question and one checked Act: it reads the facts,
+gathers evidence for each part, checks the conditions, and writes an answer with its sources. It
+needs the same inputs as the evidence agent and Ollama running:
+
+```bash
+python -m chatbot.legalos_rag.answerAgent --config ./config/poc_sources.json --rag-config ./config/rag_v1.json \
+  --act hma_1955 --question "What are the conditions for divorce by mutual consent, and what does the Act provide about custody of minor children?"
+```
+
+The answer has one block for each question part, with an explanation of the law, a sentence on what
+applies to the user's situation, the sources (Act, section and pages), and a note on its limits. A part
+with nothing found says what was not found. The explanation is written by the local model from the
+cited sections; every statement about the user's own case is a fixed sentence chosen in code from the
+condition check, never model text. The answer is only as good as the sections found for it: see the
+[answer agent notes](legalos_rag/README.md#answeragentpy) for what was measured.
 
 ---
 

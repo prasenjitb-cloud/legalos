@@ -1,6 +1,6 @@
 # legalos_rag
 
-**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, and `contextCompactor` shortens the evidence for the answer step.
+**Local helper package** for the RAG pipeline: config validation, graph orchestration, query rewriting, retrieval, prompt building, SLM invocation, and logging. Used by `chatbot/main.py` and `test.promptTester.promptRunBatch`. The separate `sourceLoader`, `sourceReview` and `sectionLookup` entry points import candidate sources, check them against their PDFs, and fetch complete sections. `questionSplitter` splits a question into legal parts and `factExtractor` records the facts a user states, `referenceAgent` resolves a named Act and section, `keywordSearch` ranks excerpts by keyword, `retriever` merges keyword and vector search, `evidenceFilter` drops results that only mention the topic, `evidenceAgent` gathers evidence for each question part, `conditionCheck` marks a section's conditions against stated facts, `applicabilityAgent` decides what can be said about a situation, `contextCompactor` shortens the evidence for the answer step, and `answerAgent` writes the answer.
 
 ---
 
@@ -26,6 +26,7 @@ legalos_rag/
 ├── conditionCheck.py
 ├── applicabilityAgent.py
 ├── contextCompactor.py
+├── answerAgent.py
 ├── workflow.py
 └── prompt/
     ├── promptSchema.py
@@ -500,6 +501,51 @@ are kept almost whole. Real shortening would need choosing list items by relevan
 needed condition, so it is not done here. The tool is safe to put in front of the answer step but does
 not by itself make its input meaningfully shorter. The sentence splitter is shared with `evidenceFilter`
 (`split_sentences`, renamed from a private helper). Nothing in the live graph calls the compactor yet.
+
+### `answerAgent.py`
+
+`answer_question(config, vectorstore, act_id, question, slm)` runs `applicabilityAgent.assess_applicability`
+(which now also returns the gathered `evidence`) and `write_answer(result, slm)`. For each question part:
+
+- **Explanation** (model): one call writes under 120 words explaining the law from the part's compacted
+  sections only, without telling the user what they can or must do. Code replaces it with the part's support
+  sentences (`source: quotes`) if the call fails, if it speaks to the user in the second person
+  ("you can", "your complaint is"), or if it contains a number or number word that is not in the sections.
+- **Situation** (code): a fixed sentence chosen from the applicability finding: ask for the open condition,
+  "appears not to be met", "an exception appears to apply", "appear to be met", or "could not be checked".
+  The model never writes it. A general question gets none.
+- **Citations** (code): built from the part's own evidence (Act, section, pages, source ID). A part cannot cite
+  another part's section, and a found part always cites its sections.
+- **No evidence**: no explanation or citation; the note says what was not found.
+- **Every part appears exactly once**, in the question's order, so a supported part cannot be dropped.
+
+Checked with a stand-in model that misbehaves (10 tests, all pass): a good explanation is used; a second-person
+conclusion, an invented number and a model failure each fall back to the support sentences; every part is
+present once and in order; situation sentences are the fixed templates; a part with no evidence has no
+explanation or citation; citations come only from the part's own evidence.
+
+Run with `qwen2.5:3b-instruct` on 8 questions (11 parts) about the POSH, Hindu Marriage and GST Acts, all the
+automatic checks were zero: no dropped part, no citation outside the part's evidence, no second-person
+conclusion on an undecided part, no number outside the sources. Reading the answers, the quality was
+weaker, and I rated each part by hand: 4 useful and correct, 5 partly useful, 2 poor.
+
+- **Useful**: custody of children; "was my complaint in time" with both dates (cites section 9, says a condition
+  appears not met); a bride aged 17 (cites section 5); a question the Act does not cover (says not found).
+- **Partly useful**: a correct explanation with an irrelevant open-condition question attached, for example
+  section 2's "domestic worker" definition offered as a question to the user; a garbled mutual-consent
+  explanation ("present a petition within six months of filing", where the Act requires the motion not earlier
+  than six months and not later than eighteen months after the petition); a refund answer that omits the two-year limit.
+- **Poor**: "am I still in time to complain" was answered with the 90-day appeal section; "when is GST on goods
+  payable" found nothing.
+- A question with a hypothetical condition ("when a workplace has fewer than ten workers") was treated as
+  personal because the fact extractor recorded that condition as a stated fact, so a general question got a
+  request for facts.
+
+These are limits of the earlier steps that the answer repeats: retrieval and the evidence filter sometimes
+rank the wrong section first, the asks quote an open clause that is not always the decisive one, and a 3B model
+paraphrases conditions imperfectly. The checks guarantee form (parts, sources, no model-made personal
+conclusion), not that an explanation is right. The number check cannot catch a garbled use of real numbers.
+The evaluator in the next step is where correctness has to be checked. Nothing in the live graph calls the agent yet.
 
 ### `workflow.py`
 
